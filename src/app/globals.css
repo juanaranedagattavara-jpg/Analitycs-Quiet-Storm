@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Storm at Sea palette */
+  --color-storm-midnight: #0a1f33;
+  --color-storm-deep: #14304d;
+  --color-storm-navy: #1b3a57;
+  --color-storm-steel: #3d5a73;
+  --color-storm-mist: #5b7a8f;
+  --color-storm-fog: #8aa5b8;
+  --color-storm-spray: #b8d0db;
+  --color-storm-foam: #dce8ef;
+  --color-storm-paper: #f0f4f7;
+  --color-lightning: #f7c948;
+  --color-lightning-soft: #fde88c;
+  --color-sunset-storm: #e8754c;
+
+  /* Semantic */
+  --color-background: #ffffff;
+  --color-foreground: #0a1f33;
+  --color-muted: #5b7a8f;
+  --color-border: #dce8ef;
+
+  /* Fonts */
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-fraunces);
+  --font-mono: var(--font-jetbrains);
+
+  /* Container */
+  --container-7xl: 80rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-lightning);
+  color: var(--color-storm-midnight);
+}
+
+/* Display headings */
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "ss02";
+  letter-spacing: -0.02em;
+}
+
+/* Animated underline for nav links */
+.nav-link {
+  position: relative;
+  transition: color 200ms ease;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 0;
+  background: var(--color-lightning);
+  transition: width 200ms ease;
+}
+.nav-link:hover::after,
+.nav-link[data-active="true"]::after {
+  width: 100%;
+}
+
+/* Subtle storm gradient background */
+.bg-storm-gradient {
+  background:
+    radial-gradient(ellipse at top right, rgba(247, 201, 72, 0.08), transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(232, 117, 76, 0.06), transparent 50%),
+    linear-gradient(180deg, #0a1f33 0%, #14304d 100%);
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 250ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -20px rgba(10, 31, 51, 0.25);
+}
+
+/* Lightning button glow */
+.btn-lightning {
+  background: var(--color-lightning);
+  color: var(--color-storm-midnight);
+  font-weight: 600;
+  transition: box-shadow 200ms ease, transform 150ms ease;
+}
+.btn-lightning:hover {
+  box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.3);
+}
+.btn-lightning:active {
+  transform: translateY(1px);
+}
