@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { PlanProvider, usePlan } from '@/lib/plan-context'
+import { profileStore } from '@/lib/profile-store'
 
 const navItems = [
   {
@@ -190,28 +191,45 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
           )
         })}
 
-        <Link
-          href="/plataforma/cuenta"
-          onClick={() => setSidebarOpen(false)}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            pathname.startsWith('/plataforma/cuenta')
-              ? 'bg-storm-deep text-lightning'
-              : 'text-storm-spray hover:bg-storm-deep/60 hover:text-white'
-          )}
-        >
-          <div className="w-8 h-8 rounded-full bg-storm-navy flex items-center justify-center text-storm-fog text-xs font-bold flex-shrink-0">
-            CM
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm truncate">Mi Cuenta</span>
-            <span className="text-[10px] text-storm-fog truncate">Carlos Munoz</span>
-          </div>
-        </Link>
+        <UserSidebarLink pathname={pathname} onNavigate={() => setSidebarOpen(false)} />
       </nav>
 
       <div className="flex-1" />
     </aside>
+  )
+}
+
+function UserSidebarLink({ pathname, onNavigate }: { pathname: string; onNavigate: () => void }) {
+  const profile = useSyncExternalStore(
+    profileStore.subscribe,
+    profileStore.getSnapshot,
+    profileStore.getServerSnapshot
+  )
+  const name = profile.name?.trim() || 'Mi Cuenta'
+  const initials = name === 'Mi Cuenta'
+    ? '?'
+    : name.split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() ?? '').join('') || '?'
+  const subtitle = profile.email || 'Completa tu perfil'
+
+  return (
+    <Link
+      href="/plataforma/cuenta"
+      onClick={onNavigate}
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+        pathname.startsWith('/plataforma/cuenta')
+          ? 'bg-storm-deep text-lightning'
+          : 'text-storm-spray hover:bg-storm-deep/60 hover:text-white'
+      )}
+    >
+      <div className="w-8 h-8 rounded-full bg-storm-navy flex items-center justify-center text-storm-fog text-xs font-bold flex-shrink-0">
+        {initials}
+      </div>
+      <div className="flex flex-col min-w-0">
+        <span className="text-sm truncate">{name}</span>
+        <span className="text-[10px] text-storm-fog truncate">{subtitle}</span>
+      </div>
+    </Link>
   )
 }
 

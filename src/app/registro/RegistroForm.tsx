@@ -34,6 +34,7 @@ function persistTrial(planHint: Plan, profile: Record<string, string>) {
   const now = new Date()
   const renewsAt = new Date(now)
   renewsAt.setDate(renewsAt.getDate() + 30)
+  const memberSince = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(now)
   try {
     window.localStorage.setItem(
       STORAGE_SUB,
@@ -45,7 +46,10 @@ function persistTrial(planHint: Plan, profile: Record<string, string>) {
         renewsAt: renewsAt.toISOString(),
       })
     )
-    window.localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile))
+    window.localStorage.setItem(
+      STORAGE_PROFILE,
+      JSON.stringify({ ...profile, memberSince: memberSince.charAt(0).toUpperCase() + memberSince.slice(1) })
+    )
   } catch {
     /* ignore quota / private-mode */
   }

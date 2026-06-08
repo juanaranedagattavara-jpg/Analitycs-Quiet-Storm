@@ -2,13 +2,16 @@ import type { UserProfile } from './types'
 
 const KEY = 'qsa.profile.v1'
 
+// Empty defaults — no AI-invented user. The real profile is filled in via
+// /registro on signup and stored in localStorage; until then everything is
+// blank and the UI shows a "complete tu perfil" empty state.
 const DEFAULT_PROFILE: UserProfile = {
-  name: 'Carlos Muñoz',
-  email: 'carlos@toralla.cl',
-  company: 'Toralla S.A.',
-  phone: '+56 9 1234 5678',
-  rut: '76.123.456-7',
-  memberSince: 'Marzo 2020',
+  name: '',
+  email: '',
+  company: '',
+  phone: '',
+  rut: '',
+  memberSince: '',
 }
 
 type Listener = () => void

@@ -17,16 +17,10 @@ import {
   type PaymentMethod,
 } from '@/lib/types'
 
-// Demo data — invoices/payment methods would come from the billing backend.
-const DEMO_INVOICES: Invoice[] = [
-  { id: 'inv-001', number: 'F-2026-0006', date: '2026-06-01', amountUF: 7, amountCLP: 266000, status: 'paid', plan: 'grande', cycle: 'mensual' },
-  { id: 'inv-002', number: 'F-2026-0005', date: '2026-05-01', amountUF: 7, amountCLP: 264500, status: 'paid', plan: 'grande', cycle: 'mensual' },
-  { id: 'inv-003', number: 'F-2026-0004', date: '2026-04-01', amountUF: 7, amountCLP: 263100, status: 'paid', plan: 'grande', cycle: 'mensual' },
-]
-
-const DEMO_PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'pm-1', type: 'card', brand: 'visa', last4: '4242', expiry: '08/28', isDefault: true },
-]
+// Real invoices and payment methods come from the billing backend.
+// Until the user has any, both sections show an empty state — no fake data.
+const INVOICES: Invoice[] = []
+const PAYMENT_METHODS: PaymentMethod[] = []
 
 const FEATURE_COMPARISON: { feature: string; chica: string; grande: string }[] = [
   { feature: 'Acceso plataforma', chica: 'Sí', grande: 'Sí' },
@@ -128,12 +122,12 @@ export default function CuentaPage() {
                 <ProfileEditor profile={profile} onCancel={() => setEditingProfile(false)} onSave={saveProfile} />
               ) : (
                 <div className="grid sm:grid-cols-2 gap-5">
-                  <InfoField label="Nombre" value={profile.name} />
-                  <InfoField label="Email" value={profile.email} />
-                  <InfoField label="Empresa" value={profile.company} />
-                  <InfoField label="Teléfono" value={profile.phone ?? '—'} />
-                  <InfoField label="RUT" value={profile.rut ?? '—'} />
-                  <InfoField label="Miembro desde" value={profile.memberSince} />
+                  <InfoField label="Nombre" value={profile.name || '—'} />
+                  <InfoField label="Email" value={profile.email || '—'} />
+                  <InfoField label="Empresa" value={profile.company || '—'} />
+                  <InfoField label="Teléfono" value={profile.phone || '—'} />
+                  <InfoField label="RUT" value={profile.rut || '—'} />
+                  <InfoField label="Miembro desde" value={profile.memberSince || '—'} />
                 </div>
               )}
               {!editingProfile && (
@@ -324,8 +318,16 @@ export default function CuentaPage() {
       {/* Facturación */}
       {tab === 'facturacion' && (
         <Card title="Historial de facturas" icon={<DocumentIcon />}>
-          {DEMO_INVOICES.length === 0 ? (
-            <p className="text-sm text-storm-mist">Aún no tienes facturas emitidas.</p>
+          {INVOICES.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-storm-paper flex items-center justify-center mb-4 text-storm-mist">
+                <DocumentIcon />
+              </div>
+              <p className="text-sm font-medium text-storm-midnight">Aún no hay facturas emitidas</p>
+              <p className="text-xs text-storm-mist mt-1">
+                Cuando se genere la primera factura aparecerá aquí, descargable como PDF.
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto -mx-6">
               <table className="w-full text-sm min-w-[640px]">
@@ -340,7 +342,7 @@ export default function CuentaPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-storm-foam">
-                  {DEMO_INVOICES.map((inv) => (
+                  {INVOICES.map((inv) => (
                     <tr key={inv.id} className="hover:bg-storm-paper/40 transition-colors">
                       <td className="px-6 py-3 font-mono text-storm-midnight">{inv.number}</td>
                       <td className="px-6 py-3 text-storm-steel">{formatDate(inv.date)}</td>
@@ -376,30 +378,42 @@ export default function CuentaPage() {
       {/* Pago */}
       {tab === 'pago' && (
         <Card title="Métodos de pago" icon={<CardIcon />}>
-          <div className="space-y-3">
-            {DEMO_PAYMENT_METHODS.map((pm) => (
-              <div key={pm.id} className="flex items-center justify-between p-4 rounded-xl border border-storm-foam bg-storm-paper/30">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-8 rounded bg-storm-midnight text-lightning font-mono text-[10px] uppercase font-bold flex items-center justify-center">
-                    {pm.brand}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-storm-midnight">•••• {pm.last4}</div>
-                    <div className="text-xs text-storm-mist">Vence {pm.expiry}</div>
-                  </div>
-                  {pm.isDefault && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-lightning/20 text-storm-midnight text-[10px] font-mono uppercase tracking-wider font-semibold">
-                      Predeterminada
-                    </span>
-                  )}
-                </div>
-                <button className="text-xs font-medium text-storm-steel hover:text-storm-midnight">Editar</button>
+          {PAYMENT_METHODS.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-storm-paper flex items-center justify-center mb-4 text-storm-mist">
+                <CardIcon />
               </div>
-            ))}
-            <button className="w-full p-4 rounded-xl border border-dashed border-storm-foam text-storm-steel hover:border-storm-spray hover:text-storm-midnight transition-colors text-sm font-medium">
-              + Agregar método de pago
-            </button>
-          </div>
+              <p className="text-sm font-medium text-storm-midnight">No tienes métodos de pago configurados</p>
+              <p className="text-xs text-storm-mist mt-1 mb-6 max-w-sm mx-auto">
+                Agrega un método cuando termine tu trial para no perder acceso a la plataforma.
+              </p>
+              <button className="px-5 py-2.5 rounded-xl bg-storm-midnight text-white text-sm font-semibold hover:bg-storm-deep transition-colors">
+                + Agregar método de pago
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {PAYMENT_METHODS.map((pm) => (
+                <div key={pm.id} className="flex items-center justify-between p-4 rounded-xl border border-storm-foam bg-storm-paper/30">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-8 rounded bg-storm-midnight text-lightning font-mono text-[10px] uppercase font-bold flex items-center justify-center">
+                      {pm.brand}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-storm-midnight">•••• {pm.last4}</div>
+                      <div className="text-xs text-storm-mist">Vence {pm.expiry}</div>
+                    </div>
+                    {pm.isDefault && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-lightning/20 text-storm-midnight text-[10px] font-mono uppercase tracking-wider font-semibold">
+                        Predeterminada
+                      </span>
+                    )}
+                  </div>
+                  <button className="text-xs font-medium text-storm-steel hover:text-storm-midnight">Editar</button>
+                </div>
+              ))}
+            </div>
+          )}
           <p className="mt-6 text-xs text-storm-mist">
             QSA usa pasarela de pago compatible con tarjetas Visa, Mastercard y transferencia bancaria.
             Tus datos se procesan en infraestructura PCI-DSS certificada.
