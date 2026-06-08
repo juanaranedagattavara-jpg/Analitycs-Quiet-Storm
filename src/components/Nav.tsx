@@ -68,10 +68,10 @@ export function Nav() {
 
           <div className="hidden lg:flex items-center gap-3">
             <Link
-              href={ctas.demo.href}
+              href={ctas.platform.href}
               className="text-[15px] font-medium text-storm-steel hover:text-storm-midnight transition-colors"
             >
-              Demo
+              Plataforma
             </Link>
             <Link
               href={ctas.trial.href}
@@ -112,16 +112,16 @@ export function Nav() {
             ))}
             <div className="mt-4 flex flex-col gap-2">
               <Link
-                href={ctas.demo.href}
+                href={ctas.platform.href}
                 className="h-12 inline-flex items-center justify-center rounded-full border border-storm-foam text-storm-midnight font-medium"
               >
-                Demo 15 min
+                Plataforma
               </Link>
               <Link
                 href={ctas.trial.href}
                 className="btn-lightning h-12 inline-flex items-center justify-center rounded-full font-semibold"
               >
-                Prueba gratis 1 mes
+                Prueba gratis
               </Link>
             </div>
           </div>

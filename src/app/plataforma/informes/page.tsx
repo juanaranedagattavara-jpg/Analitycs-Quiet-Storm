@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
-import { monthOptions, getAllReports } from '@/lib/mock-data'
+import { getRealReports } from '@/lib/real-reports'
 import { formatMonthYear } from '@/lib/export-utils'
 import type { Report, ReportType, Industry } from '@/lib/types'
 
@@ -112,7 +112,7 @@ function UpgradeBanner() {
             </h3>
           </div>
           <p className="text-xs text-storm-spray">
-            Con Plan Grande obtienes 7 informes mensuales incluyendo rankings, analisis competitivo y datos detallados por empresa.
+            Con Plan Grande obtienes acceso completo a rankings, análisis competitivo y datos detallados por empresa.
           </p>
         </div>
         <button className="btn-lightning rounded-lg h-9 px-5 text-xs font-semibold whitespace-nowrap flex-shrink-0">
@@ -125,43 +125,26 @@ function UpgradeBanner() {
 
 export default function InformesPage() {
   const { plan } = usePlan()
-  const [selectedMonth, setSelectedMonth] = useState<string>('todos')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('todas')
   const [selectedType, setSelectedType] = useState<string>('todos')
 
-  const allReports = useMemo(() => getAllReports(), [])
+  const allReports = useMemo(() => getRealReports(), [])
 
   const filteredReports = useMemo(() => {
-    let filtered = allReports
-
-    // Filter by plan access
-    filtered = filtered.filter((r) => canAccessReport(r.plan, plan))
-
-    if (selectedMonth !== 'todos') {
-      const [y, m] = selectedMonth.split('-').map(Number)
-      filtered = filtered.filter((r) => r.year === y && r.month === m)
-    }
+    let filtered = allReports.filter((r) => canAccessReport(r.plan, plan))
     if (selectedIndustry !== 'todas') {
       filtered = filtered.filter((r) => r.industry === selectedIndustry)
     }
     if (selectedType !== 'todos') {
       filtered = filtered.filter((r) => r.type === selectedType)
     }
-
-    // Sort by upload date descending
-    filtered.sort((a, b) => b.uploadDate.localeCompare(a.uploadDate))
-
     return filtered
-  }, [allReports, plan, selectedMonth, selectedIndustry, selectedType])
+  }, [allReports, plan, selectedIndustry, selectedType])
 
-  // Count locked reports for chica plan
   const lockedCount = useMemo(() => {
     if (plan === 'grande') return 0
     return allReports.filter((r) => !canAccessReport(r.plan, plan)).length
   }, [allReports, plan])
-
-  // Reports per month based on plan
-  const reportsPerMonth = plan === 'grande' ? 7 : 4
 
   const selectClasses =
     'h-10 px-4 pr-8 rounded-lg border border-storm-foam bg-white text-sm text-storm-midnight focus:outline-none focus:ring-2 focus:ring-lightning focus:border-lightning appearance-none cursor-pointer'
@@ -173,40 +156,18 @@ export default function InformesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="font-display text-2xl lg:text-3xl font-bold text-storm-midnight">
           Informes
         </h1>
         <p className="text-sm text-storm-mist mt-1">
-          Biblioteca de reportes, dashboards y datos de exportacion
-          <span className="ml-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-storm-paper text-storm-steel">
-            {reportsPerMonth} informes/mes
-          </span>
+          Biblioteca de reportes cargados por el cliente — PDF, Excel y dashboards interactivos.
         </p>
       </div>
 
-      {/* Upgrade banner for chica */}
-      {plan === 'chica' && lockedCount > 0 && (
-        <UpgradeBanner />
-      )}
+      {plan === 'chica' && lockedCount > 0 && <UpgradeBanner />}
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className={selectClasses}
-          style={selectBgStyle}
-        >
-          <option value="todos">Todos los meses</option>
-          {[...monthOptions].reverse().map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-
         <select
           value={selectedIndustry}
           onChange={(e) => setSelectedIndustry(e.target.value)}
@@ -214,9 +175,7 @@ export default function InformesPage() {
           style={selectBgStyle}
         >
           {INDUSTRY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
 
@@ -227,14 +186,11 @@ export default function InformesPage() {
           style={selectBgStyle}
         >
           {TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>
 
-      {/* Results count */}
       <p className="text-sm text-storm-mist">
         {filteredReports.length} {filteredReports.length === 1 ? 'informe encontrado' : 'informes encontrados'}
         {plan === 'chica' && lockedCount > 0 && (
@@ -242,7 +198,6 @@ export default function InformesPage() {
         )}
       </p>
 
-      {/* Reports Grid */}
       {filteredReports.length === 0 ? (
         <div className="bg-white rounded-2xl border border-storm-foam p-12 text-center">
           <div className="w-16 h-16 rounded-full bg-storm-paper mx-auto flex items-center justify-center mb-4">
@@ -252,7 +207,7 @@ export default function InformesPage() {
             </svg>
           </div>
           <p className="text-storm-steel font-medium">No se encontraron informes</p>
-          <p className="text-sm text-storm-mist mt-1">Prueba ajustando los filtros de busqueda</p>
+          <p className="text-sm text-storm-mist mt-1">Prueba ajustando los filtros</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -261,7 +216,6 @@ export default function InformesPage() {
               key={report.id}
               className="bg-white rounded-2xl p-6 border border-storm-foam card-lift flex flex-col"
             >
-              {/* Icon + meta row */}
               <div className="flex items-start gap-4">
                 <ReportTypeIcon type={report.type} />
                 <div className="flex-1 min-w-0">
@@ -276,12 +230,10 @@ export default function InformesPage() {
                 </div>
               </div>
 
-              {/* Description */}
               <p className="text-xs text-storm-mist mt-3 line-clamp-2 leading-relaxed flex-1">
                 {report.description}
               </p>
 
-              {/* Tags */}
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {report.tags.slice(0, 4).map((tag) => (
                   <span
@@ -293,25 +245,22 @@ export default function InformesPage() {
                 ))}
               </div>
 
-              {/* Footer */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-storm-foam/60">
                 <div className="flex items-center gap-3 text-xs text-storm-fog">
                   <span>{formatMonthYear(report.month, report.year)}</span>
-                  {report.fileSize && report.fileSize !== '-' && (
+                  {report.fileSize && (
                     <>
                       <span className="text-storm-foam">|</span>
                       <span>{report.fileSize}</span>
                     </>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/plataforma/informes/${report.id}`}
-                    className="text-xs font-semibold text-storm-midnight hover:text-lightning transition-colors"
-                  >
-                    Ver informe
-                  </Link>
-                </div>
+                <Link
+                  href={`/plataforma/informes/${report.id}`}
+                  className="text-xs font-semibold text-storm-midnight hover:text-lightning transition-colors"
+                >
+                  Ver informe
+                </Link>
               </div>
             </div>
           ))}
@@ -319,4 +268,4 @@ export default function InformesPage() {
       )}
     </div>
   )
-} 
+}

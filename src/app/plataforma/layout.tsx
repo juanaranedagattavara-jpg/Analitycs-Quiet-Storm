@@ -168,8 +168,8 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
       {/* Plan Switcher */}
       <PlanSwitcher />
 
-      {/* Nav links */}
-      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto border-t border-storm-deep">
+      {/* Nav links + user (Mi Cuenta sits directly under Admin) */}
+      <nav className="px-3 py-2 space-y-1 overflow-y-auto border-t border-storm-deep">
         {navItems.map((item) => {
           const isActive =
             item.href === '/plataforma'
@@ -193,13 +193,16 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
             </Link>
           )
         })}
-      </nav>
 
-      {/* User section */}
-      <div className="px-3 py-4 border-t border-storm-deep">
         <Link
           href="/plataforma/cuenta"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-storm-spray hover:bg-storm-deep/60 hover:text-white transition-colors"
+          onClick={() => setSidebarOpen(false)}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+            pathname.startsWith('/plataforma/cuenta')
+              ? 'bg-storm-deep text-lightning'
+              : 'text-storm-spray hover:bg-storm-deep/60 hover:text-white'
+          )}
         >
           <div className="w-8 h-8 rounded-full bg-storm-navy flex items-center justify-center text-storm-fog text-xs font-bold flex-shrink-0">
             CM
@@ -209,7 +212,9 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
             <span className="text-[10px] text-storm-fog truncate">Carlos Munoz</span>
           </div>
         </Link>
-      </div>
+      </nav>
+
+      <div className="flex-1" />
     </aside>
   )
 }
