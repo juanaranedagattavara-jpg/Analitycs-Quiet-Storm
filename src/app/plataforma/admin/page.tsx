@@ -2,9 +2,23 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/cn'
-import { usePlan } from '@/lib/plan-context'
-import { getAllReports, monthOptions } from '@/lib/mock-data'
-import type { Report, ReportType, Industry, UploadedFile } from '@/lib/types'
+import { getRealReports } from '@/lib/real-reports'
+import type { ReportType, Industry, UploadedFile, MonthOption } from '@/lib/types'
+
+// Month/year options for the admin upload form. Covers a wide range so
+// admins can backfill or schedule a new upload.
+const adminMonthOptions: MonthOption[] = (() => {
+  const MN = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  const o: MonthOption[] = []
+  const now = new Date()
+  const ey = now.getFullYear()
+  for (let y = 2015; y <= ey + 1; y++) {
+    for (let m = 1; m <= 12; m++) {
+      o.push({ value: `${y}-${String(m).padStart(2, '0')}`, label: `${MN[m - 1]} ${y}` })
+    }
+  }
+  return o
+})()
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -71,7 +85,6 @@ const ACCEPTED_TYPES = '.pdf,.xlsx,.xls,.html,.csv'
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const { plan } = usePlan()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -83,14 +96,17 @@ export default function AdminPage() {
   const [formTitle, setFormTitle] = useState('')
   const [formType, setFormType] = useState<ReportType>('pdf')
   const [formIndustry, setFormIndustry] = useState<Industry>('mitilicultura')
-  const [formMonth, setFormMonth] = useState(monthOptions[monthOptions.length - 1].value)
+  const [formMonth, setFormMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
   const [formPlan, setFormPlan] = useState('ambos')
   const [formDescription, setFormDescription] = useState('')
   const [formTags, setFormTags] = useState('')
 
-  // Build combined table data: mock reports + user uploads
+  // Combined table: real reports + admin-created uploads
   const allReports = useMemo(() => {
-    const mockReports = getAllReports()
+    const real = getRealReports()
     const combined: Array<{
       id: string
       title: string
@@ -101,7 +117,7 @@ export default function AdminPage() {
       plan: string
       status: 'published' | 'draft' | 'processing'
       uploadDate: string
-    }> = mockReports.map((r) => ({
+    }> = real.map((r) => ({
       id: r.id,
       title: r.title,
       type: r.type,
@@ -131,11 +147,11 @@ export default function AdminPage() {
     return combined
   }, [uploadedFiles])
 
-  // Stats
   const stats = useMemo(() => {
     const total = allReports.length
+    const now = new Date()
     const thisMonth = allReports.filter(
-      (r) => r.month === 6 && r.year === 2026
+      (r) => r.month === now.getMonth() + 1 && r.year === now.getFullYear()
     ).length
     const grandeOnly = allReports.filter((r) => r.plan === 'grande').length
     const chicaOnly = allReports.filter((r) => r.plan === 'chica').length
@@ -223,14 +239,17 @@ export default function AdminPage() {
       setFormTitle('')
       setFormType('pdf')
       setFormIndustry('mitilicultura')
-      setFormMonth(monthOptions[monthOptions.length - 1].value)
+      {
+        const now = new Date()
+        setFormMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`)
+      }
       setFormPlan('ambos')
       setFormDescription('')
       setFormTags('')
       setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     },
-    [formTitle, formType, formIndustry, formMonth, formPlan, formDescription, formTags, selectedFile]
+    [formTitle, formType, formIndustry, formMonth, selectedFile]
   )
 
   const handleDelete = useCallback(
@@ -446,7 +465,7 @@ export default function AdminPage() {
                 onChange={(e) => setFormMonth(e.target.value)}
                 className={inputClasses}
               >
-                {monthOptions.map((opt) => (
+                {adminMonthOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>

@@ -54,7 +54,7 @@ export function Plataforma() {
 
           <div className="lg:col-span-7">
             <ol className="space-y-1">
-              {pasos.map((paso, i) => (
+              {pasos.map((paso) => (
                 <li
                   key={paso.n}
                   className="group flex gap-6 p-6 rounded-xl hover:bg-white transition-colors border-b border-storm-foam last:border-b-0"

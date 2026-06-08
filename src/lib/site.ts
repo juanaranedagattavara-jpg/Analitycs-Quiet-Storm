@@ -14,7 +14,7 @@ export const nav = [
   { href: "/", label: "Inicio" },
   { href: "/precios", label: "Precios" },
   {
-    href: "/industrias/mitilicultura",
+    href: "/industrias",
     label: "Industrias",
     children: [
       { href: "/industrias/mitilicultura", label: "Mitilicultura" },
@@ -24,12 +24,15 @@ export const nav = [
   },
   { href: "/sobre-nosotros", label: "Sobre nosotros" },
   { href: "/contacto", label: "Contacto" },
-  { href: "/plataforma", label: "Plataforma" },
 ] as const;
 
 export const ctas = {
   trial: {
-    label: "Probar plataforma",
+    label: "Prueba gratis",
+    href: "/registro",
+  },
+  platform: {
+    label: "Plataforma",
     href: "/plataforma",
   },
   demo: {

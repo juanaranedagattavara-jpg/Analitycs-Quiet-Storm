@@ -1,4 +1,71 @@
-export type Plan = 'grande' | 'chica'
+export type Plan = 'chica' | 'grande'
+export type BillingCycle = 'mensual' | 'anual'
+export type SubscriptionStatus = 'trial' | 'active' | 'cancelled' | 'past_due'
+
+export interface PlanPricing {
+  mensual: number // UF/mes
+  anual: number   // UF/año
+}
+
+export const PLAN_PRICING: Record<Plan, PlanPricing> = {
+  chica: { mensual: 1, anual: 10 },
+  grande: { mensual: 7, anual: 70 },
+}
+
+export function getEffectivePrice(plan: Plan, cycle: BillingCycle): number {
+  return PLAN_PRICING[plan][cycle]
+}
+
+/** Monthly-equivalent price for a yearly subscription, used for comparison */
+export function getMonthlyEquivalent(plan: Plan, cycle: BillingCycle): number {
+  const p = PLAN_PRICING[plan]
+  if (cycle === 'anual') return +(p.anual / 12).toFixed(2)
+  return p.mensual
+}
+
+/** How much UF the user saves per year by choosing anual over mensual */
+export function getYearlyDiscount(plan: Plan): number {
+  const p = PLAN_PRICING[plan]
+  return +(p.mensual * 12 - p.anual).toFixed(1)
+}
+
+export interface Subscription {
+  plan: Plan
+  cycle: BillingCycle
+  status: SubscriptionStatus
+  startedAt: string // ISO date
+  renewsAt: string  // ISO date (trial-end or next billing)
+  cancelAt?: string // ISO date if cancelled (still active until this date)
+}
+
+export interface UserProfile {
+  name: string
+  email: string
+  company: string
+  phone?: string
+  rut?: string
+  memberSince: string
+}
+
+export interface Invoice {
+  id: string
+  number: string
+  date: string // ISO
+  amountUF: number
+  amountCLP: number
+  status: 'paid' | 'pending' | 'failed'
+  plan: Plan
+  cycle: BillingCycle
+}
+
+export interface PaymentMethod {
+  id: string
+  type: 'card' | 'transfer'
+  last4?: string
+  brand?: 'visa' | 'mastercard' | 'amex'
+  expiry?: string // MM/YY
+  isDefault: boolean
+}
 
 export interface PlanFeatures {
   rankingEmpresas: boolean
