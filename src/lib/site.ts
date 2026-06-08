@@ -29,7 +29,7 @@ export const nav = [
 export const ctas = {
   trial: {
     label: "Prueba gratis",
-    href: "/plataforma",
+    href: "/registro",
   },
   platform: {
     label: "Plataforma",

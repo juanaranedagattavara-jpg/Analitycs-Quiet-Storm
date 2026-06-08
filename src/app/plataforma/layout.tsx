@@ -53,7 +53,11 @@ const navItems = [
 ]
 
 function PlanSwitcher() {
-  const { plan, setPlan } = usePlan()
+  const { plan, cycle, setPlan, isTrial } = usePlan()
+  const price = plan === 'chica'
+    ? (cycle === 'mensual' ? '1 UF/mes' : '10 UF/año')
+    : (cycle === 'mensual' ? '7 UF/mes' : '70 UF/año')
+  const reports = plan === 'grande' ? 7 : 4
 
   return (
     <div className="px-3 py-3">
@@ -61,17 +65,6 @@ function PlanSwitcher() {
         Plan activo
       </p>
       <div className="flex rounded-lg bg-storm-deep p-1 gap-1">
-        <button
-          onClick={() => setPlan('grande')}
-          className={cn(
-            'flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all duration-200',
-            plan === 'grande'
-              ? 'bg-lightning text-storm-midnight shadow-sm'
-              : 'text-storm-fog hover:text-storm-spray'
-          )}
-        >
-          Empresa Grande
-        </button>
         <button
           onClick={() => setPlan('chica')}
           className={cn(
@@ -83,19 +76,23 @@ function PlanSwitcher() {
         >
           Empresa Chica
         </button>
-      </div>
-      <div className="mt-2 px-3">
-        <span
+        <button
+          onClick={() => setPlan('grande')}
           className={cn(
-            'inline-flex items-center gap-1.5 text-[10px] font-medium',
-            plan === 'grande' ? 'text-lightning' : 'text-storm-spray'
+            'flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all duration-200',
+            plan === 'grande'
+              ? 'bg-lightning text-storm-midnight shadow-sm'
+              : 'text-storm-fog hover:text-storm-spray'
           )}
         >
-          <span className={cn(
-            'w-1.5 h-1.5 rounded-full',
-            plan === 'grande' ? 'bg-lightning' : 'bg-storm-spray'
-          )} />
-          {plan === 'grande' ? '60-80 UF/ano - 7 informes/mes' : '0.5-1 UF/mes - 4 informes/mes'}
+          Empresa Grande
+        </button>
+      </div>
+      <div className="mt-2 px-3">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-storm-spray">
+          <span className="w-1.5 h-1.5 rounded-full bg-lightning" />
+          {price} · {reports} informes/mes
+          {isTrial && <span className="ml-1 px-1.5 py-0.5 rounded bg-lightning/30 text-lightning text-[9px] font-bold uppercase">Trial</span>}
         </span>
       </div>
     </div>
