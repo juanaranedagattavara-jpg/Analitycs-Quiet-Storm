@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Nav } from "@/components/Nav";
-import { Footer } from "@/components/Footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -42,6 +40,13 @@ export const metadata: Metadata = {
     index: false, // Bloqueado hasta go-live día 29
     follow: false,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a1f33",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({

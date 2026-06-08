@@ -173,11 +173,6 @@ export function getKPI(): MonthlyKPI {
   }
 }
 
-// Kept for backwards compatibility with pages that still pass month/year.
-export function getKPIForMonth(_month: number, _year: number): MonthlyKPI {
-  return getKPI()
-}
-
 // ─── Price trend: tendencia real diciembre 2015 – noviembre 2016 ───────────
 
 export function getPriceTrend(): PricePoint[] {

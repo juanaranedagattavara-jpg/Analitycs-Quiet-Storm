@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { PlanProvider, usePlan } from '@/lib/plan-context'
-import type { Plan } from '@/lib/types'
 
 const navItems = [
   {

@@ -1,21 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  PieChart,
-  Pie,
-} from 'recharts'
+import dynamic from 'next/dynamic'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
 import {
@@ -26,14 +12,27 @@ import {
   getExportData,
   getDestinationData,
 } from '@/lib/mock-data'
-import {
-  formatUSD,
-  formatTons,
-  exportToExcel,
-} from '@/lib/export-utils'
+import { formatUSD, formatTons, exportToExcel } from '@/lib/export-utils'
+import { CHART_COLORS } from './_components/charts'
 
-const CALIBER_COLORS = ['#f7c948', '#3d5a73', '#5b7a8f', '#8aa5b8', '#b8d0db']
-const DESTINATION_COLORS = ['#f7c948', '#3b82f6', '#10b981', '#e8754c', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b']
+// Recharts is ~150 KB gzipped — defer it so the dashboard layout, KPI cards
+// and tables paint immediately. ssr:false also avoids the width(-1)/height(-1)
+// warnings that ResponsiveContainer emits during static prerender.
+const ChartSkeleton = () => (
+  <div className="h-72 rounded-xl bg-storm-paper/60 animate-pulse" aria-hidden />
+)
+const VolumeTrendChart = dynamic(
+  () => import('./_components/charts').then((m) => m.VolumeTrendChart),
+  { ssr: false, loading: ChartSkeleton }
+)
+const CaliberBarChart = dynamic(
+  () => import('./_components/charts').then((m) => m.CaliberBarChart),
+  { ssr: false, loading: ChartSkeleton }
+)
+const DestinationPieChart = dynamic(
+  () => import('./_components/charts').then((m) => m.DestinationPieChart),
+  { ssr: false, loading: ChartSkeleton }
+)
 
 function UpgradeBanner() {
   return (
@@ -49,7 +48,7 @@ function UpgradeBanner() {
             </h3>
           </div>
           <p className="text-sm text-storm-spray leading-relaxed">
-            Accede a rankings de empresas, desglose por calibre, analisis competitivo detallado y todos los informes mensuales.
+            Accede a rankings de empresas, desglose por calibre, análisis competitivo y todos los informes mensuales.
           </p>
         </div>
         <button className="btn-lightning rounded-xl h-10 px-6 text-sm font-semibold whitespace-nowrap flex-shrink-0">
@@ -89,27 +88,16 @@ export default function DashboardPage() {
   const calibers = useMemo(() => getCaliberBreakdown(), [])
   const exportData = useMemo(() => getExportData(), [])
   const destinations = useMemo(() => getDestinationData(), [])
+  const destinationPie = useMemo(() => destinations.slice(0, 8), [destinations])
 
   function handleExportExcel() {
     exportToExcel(exportData, 'QSA_Exportaciones_2022.xlsx')
   }
 
   const kpiCards = [
-    {
-      label: 'Valor Total Exportaciones',
-      value: formatUSD(kpi.totalExportValue),
-      unit: 'USD',
-    },
-    {
-      label: 'Volumen Total',
-      value: formatTons(kpi.totalVolume),
-      unit: 'toneladas',
-    },
-    {
-      label: 'Precio Promedio',
-      value: `$${kpi.avgPrice.toFixed(2)}`,
-      unit: 'USD/kg',
-    },
+    { label: 'Valor Total Exportaciones', value: formatUSD(kpi.totalExportValue), unit: 'USD' },
+    { label: 'Volumen Total', value: formatTons(kpi.totalVolume), unit: 'toneladas' },
+    { label: 'Precio Promedio', value: `$${kpi.avgPrice.toFixed(2)}`, unit: 'USD/kg' },
     {
       label: plan === 'grande' ? 'Empresas Activas' : 'Destino Principal',
       value: plan === 'grande' ? String(kpi.numCompanies) : kpi.topDestination,
@@ -117,11 +105,8 @@ export default function DashboardPage() {
     },
   ]
 
-  const destinationPie = destinations.slice(0, 8)
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl lg:text-3xl font-bold text-storm-midnight">
@@ -154,13 +139,9 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card) => (
-          <div
-            key={card.label}
-            className="bg-white rounded-2xl p-6 border border-storm-foam"
-          >
+          <div key={card.label} className="bg-white rounded-2xl p-6 border border-storm-foam">
             <p className="text-sm text-storm-mist font-medium">{card.label}</p>
             <p className="text-2xl lg:text-3xl font-bold text-storm-midnight mt-2 font-mono">
               {card.value}
@@ -172,7 +153,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Volume trend chart (2015-2016 historical, real data) */}
       <div className="bg-white rounded-2xl p-6 border border-storm-foam">
         <h2 className="font-display text-lg font-semibold text-storm-midnight mb-1">
           Exportaciones por Destino — Toneladas mensuales
@@ -180,43 +160,7 @@ export default function DashboardPage() {
         <p className="text-xs text-storm-mist mb-4">
           Dic 2015 – Nov 2016 (datos del cliente)
         </p>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={priceTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dce8ef" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: '#5b7a8f' }}
-                tickLine={false}
-                axisLine={{ stroke: '#dce8ef' }}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#5b7a8f' }}
-                tickLine={false}
-                axisLine={{ stroke: '#dce8ef' }}
-                domain={['auto', 'auto']}
-                tickFormatter={(v: number) => `${v.toFixed(0)} t`}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: '12px',
-                  border: '1px solid #dce8ef',
-                  boxShadow: '0 4px 12px rgba(10,31,51,0.08)',
-                  fontSize: '13px',
-                }}
-                formatter={(value) => [`${Number(value).toFixed(1)} t`]}
-              />
-              <Legend
-                iconType="circle"
-                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
-              />
-              <Line type="monotone" dataKey="espana" name="España" stroke="#f7c948" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#f7c948' }} />
-              <Line type="monotone" dataKey="francia" name="Francia" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#3b82f6' }} />
-              <Line type="monotone" dataKey="italia" name="Italia" stroke="#10b981" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#10b981' }} />
-              <Line type="monotone" dataKey="promedio" name="Promedio" stroke="#3d5a73" strokeWidth={2} strokeDasharray="6 3" dot={false} activeDot={{ r: 4, fill: '#3d5a73' }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <VolumeTrendChart data={priceTrend} />
       </div>
 
       {plan === 'chica' && (
@@ -231,54 +175,17 @@ export default function DashboardPage() {
 
       {plan === 'grande' && (
         <>
-          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Caliber Breakdown Chart */}
             <div className="bg-white rounded-2xl p-6 border border-storm-foam">
               <h2 className="font-display text-lg font-semibold text-storm-midnight mb-1">
                 Participación por Calibre
               </h2>
               <p className="text-xs text-storm-mist mb-4">Anual 2022 — Mejillón carne</p>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={calibers} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#dce8ef" vertical={false} />
-                    <XAxis
-                      dataKey="calibre"
-                      tick={{ fontSize: 11, fill: '#5b7a8f' }}
-                      tickLine={false}
-                      axisLine={{ stroke: '#dce8ef' }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: '#5b7a8f' }}
-                      tickLine={false}
-                      axisLine={{ stroke: '#dce8ef' }}
-                      tickFormatter={(v: number) => `${v}%`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: '12px',
-                        border: '1px solid #dce8ef',
-                        boxShadow: '0 4px 12px rgba(10,31,51,0.08)',
-                        fontSize: '13px',
-                      }}
-                      formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Participación']}
-                    />
-                    <Bar dataKey="participacion_pct" name="participacion_pct" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                      {calibers.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={CALIBER_COLORS[index % CALIBER_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <CaliberBarChart data={calibers} />
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {calibers.map((item, i) => (
                   <div key={item.calibre} className="flex items-center gap-2 text-xs text-storm-steel">
-                    <span
-                      className="w-3 h-3 rounded-sm flex-shrink-0"
-                      style={{ backgroundColor: CALIBER_COLORS[i] }}
-                    />
+                    <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: CHART_COLORS.caliber[i] }} />
                     <span>{item.calibre}</span>
                     <span className="font-mono text-storm-mist">${item.precio_promedio.toFixed(2)}</span>
                   </div>
@@ -286,47 +193,16 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Destination Pie Chart */}
             <div className="bg-white rounded-2xl p-6 border border-storm-foam">
               <h2 className="font-display text-lg font-semibold text-storm-midnight mb-1">
                 Análisis por Destino
               </h2>
               <p className="text-xs text-storm-mist mb-4">Acumulado dic 2015 – nov 2016</p>
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={destinationPie}
-                      dataKey="participacion_pct"
-                      nameKey="destino"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      innerRadius={50}
-                      paddingAngle={2}
-                      label={({ destino, participacion_pct }: any) => `${destino} ${participacion_pct}%`}
-                      labelLine={{ stroke: '#8aa5b8', strokeWidth: 1 }}
-                    >
-                      {destinationPie.map((_, index) => (
-                        <Cell key={`dest-${index}`} fill={DESTINATION_COLORS[index % DESTINATION_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: '12px',
-                        border: '1px solid #dce8ef',
-                        boxShadow: '0 4px 12px rgba(10,31,51,0.08)',
-                        fontSize: '13px',
-                      }}
-                      formatter={(value: any, name: any) => [`${value}%`, name]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <DestinationPieChart data={destinationPie} />
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {destinationPie.slice(0, 4).map((dest, i) => (
                   <div key={dest.destino} className="flex items-center gap-2 text-xs text-storm-steel">
-                    <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: DESTINATION_COLORS[i] }} />
+                    <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: CHART_COLORS.destination[i] }} />
                     <span>{dest.destino}</span>
                     <span className="font-mono text-storm-mist">{dest.participacion_pct}%</span>
                   </div>
@@ -335,7 +211,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Company Ranking Table */}
           <div className="bg-white rounded-2xl border border-storm-foam overflow-hidden">
             <div className="px-6 py-4 border-b border-storm-foam">
               <h2 className="font-display text-lg font-semibold text-storm-midnight">
@@ -366,18 +241,10 @@ export default function DashboardPage() {
                     >
                       <td className="px-4 py-3 font-mono text-storm-mist">{company.position}</td>
                       <td className="px-4 py-3 font-medium text-storm-midnight">{company.empresa}</td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        {company.volumen_ton.toLocaleString('en-US')}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        {formatUSD(company.valor_usd)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        {company.participacion_pct.toFixed(1)}%
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        ${company.precio_usd_kg?.toFixed(2) ?? '—'}
-                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">{company.volumen_ton.toLocaleString('en-US')}</td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">{formatUSD(company.valor_usd)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">{company.participacion_pct.toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">${company.precio_usd_kg?.toFixed(2) ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -385,7 +252,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Detailed Export Data Table */}
           <div className="bg-white rounded-2xl border border-storm-foam overflow-hidden">
             <div className="px-6 py-4 border-b border-storm-foam flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
@@ -432,15 +298,9 @@ export default function DashboardPage() {
                       <td className="px-4 py-3 text-storm-steel">{row.destino}</td>
                       <td className="px-4 py-3 text-storm-steel whitespace-nowrap">{row.empresa}</td>
                       <td className="px-4 py-3 font-mono text-storm-mist">{row.calibre}</td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        {row.volumen_kg.toLocaleString('en-US')}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        {formatUSD(row.valor_usd)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-storm-steel">
-                        ${row.precio_usd_kg.toFixed(2)}
-                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">{row.volumen_kg.toLocaleString('en-US')}</td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">{formatUSD(row.valor_usd)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-storm-steel">${row.precio_usd_kg.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>

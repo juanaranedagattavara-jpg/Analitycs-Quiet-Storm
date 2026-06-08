@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { nav, site, ctas } from "@/lib/site";
+import { nav, ctas } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 export function Nav() {
@@ -12,15 +12,24 @@ export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
+    // rAF-throttle so setState fires at most once per frame.
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      setScrolled(window.scrollY > 8);
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  // Mobile menu is closed via onClick handlers on its links (below), so we
+  // intentionally do not setState in an effect on pathname change.
 
   return (
     <header
@@ -105,6 +114,7 @@ export function Nav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 className="py-3 text-base font-medium text-storm-midnight border-b border-storm-foam/60 last:border-b-0"
               >
                 {item.label}
@@ -113,12 +123,14 @@ export function Nav() {
             <div className="mt-4 flex flex-col gap-2">
               <Link
                 href={ctas.platform.href}
+                onClick={() => setMobileOpen(false)}
                 className="h-12 inline-flex items-center justify-center rounded-full border border-storm-foam text-storm-midnight font-medium"
               >
                 Plataforma
               </Link>
               <Link
                 href={ctas.trial.href}
+                onClick={() => setMobileOpen(false)}
                 className="btn-lightning h-12 inline-flex items-center justify-center rounded-full font-semibold"
               >
                 Prueba gratis

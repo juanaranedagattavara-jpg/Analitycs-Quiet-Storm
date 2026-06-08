@@ -57,6 +57,8 @@ function ReportFileViewer({ report }: { report: RealReport }) {
         <iframe
           src={report.file}
           title={report.title}
+          loading="lazy"
+          sandbox="allow-same-origin allow-scripts allow-popups"
           className="w-full h-[80vh] bg-white"
         />
       </div>

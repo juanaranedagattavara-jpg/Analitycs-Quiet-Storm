@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
 import { PLAN_CONFIGS } from '@/lib/types'

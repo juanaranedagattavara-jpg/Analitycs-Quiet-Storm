@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/cn'
-import { usePlan } from '@/lib/plan-context'
 import { getRealReports } from '@/lib/real-reports'
 import type { ReportType, Industry, UploadedFile, MonthOption } from '@/lib/types'
 
@@ -86,7 +85,6 @@ const ACCEPTED_TYPES = '.pdf,.xlsx,.xls,.html,.csv'
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const { plan } = usePlan()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -251,7 +249,7 @@ export default function AdminPage() {
       setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     },
-    [formTitle, formType, formIndustry, formMonth, formPlan, formDescription, formTags, selectedFile]
+    [formTitle, formType, formIndustry, formMonth, selectedFile]
   )
 
   const handleDelete = useCallback(
