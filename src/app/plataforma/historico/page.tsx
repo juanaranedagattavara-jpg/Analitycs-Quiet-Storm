@@ -9,16 +9,19 @@ import {
   getRealReportPeriods,
   type RealReport,
 } from '@/lib/real-reports'
-import type { Report } from '@/lib/types'
+import type { Report, Plan } from '@/lib/types'
+import { PLAN_LABELS } from '@/lib/types'
 
 const MONTH_NAMES_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
 
-function canAccessReport(reportPlan: Report['plan'], userPlan: 'grande' | 'chica'): boolean {
+function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
   if (reportPlan === 'ambos') return true
-  return reportPlan === userPlan
+  if (userPlan === 'enterprise') return true
+  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
+  return reportPlan === 'pyme'
 }
 
 const reportTypeLabels: Record<string, string> = {
@@ -36,8 +39,9 @@ const reportTypeColors: Record<string, string> = {
 }
 
 const planLabels: Record<string, string> = {
-  grande: 'Empresa Grande',
-  chica: 'PYME',
+  enterprise: PLAN_LABELS.enterprise,
+  profesional: PLAN_LABELS.profesional,
+  pyme: PLAN_LABELS.pyme,
   ambos: 'Todos',
 }
 
@@ -164,8 +168,8 @@ export default function HistoricoPage() {
                   </h2>
                   <p className="mt-1 text-storm-steel text-sm">
                     {expandedData.reports.length} {expandedData.reports.length === 1 ? 'informe disponible' : 'informes disponibles'}
-                    {plan === 'chica' && expandedData.lockedCount > 0 && (
-                      <span className="text-storm-fog"> ({expandedData.lockedCount} adicionales en Plan Grande)</span>
+                    {plan === 'pyme' && expandedData.lockedCount > 0 && (
+                      <span className="text-storm-fog"> ({expandedData.lockedCount} adicionales en Plan Enterprise)</span>
                     )}
                   </p>
                 </div>
@@ -217,10 +221,10 @@ export default function HistoricoPage() {
                   </div>
                 ))}
 
-                {plan === 'chica' && expandedData.lockedCount > 0 && (
+                {plan === 'pyme' && expandedData.lockedCount > 0 && (
                   <div className="mt-4 p-4 rounded-xl bg-storm-midnight/5 border border-storm-foam text-center">
                     <span className="text-sm font-medium text-storm-steel">
-                      {expandedData.lockedCount} informes adicionales en Plan Grande
+                      {expandedData.lockedCount} informes adicionales en Plan Enterprise
                     </span>
                   </div>
                 )}

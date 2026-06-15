@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
 import { cn } from '@/lib/cn'
-import { PLAN_PRICING, getMonthlyEquivalent, getYearlyDiscount } from '@/lib/types'
+import { PLAN_PRICING, PLAN_LABELS, getMonthlyEquivalent, getYearlyDiscount } from '@/lib/types'
 import type { BillingCycle, Plan } from '@/lib/types'
 import { ctas } from '@/lib/site'
 
@@ -14,34 +14,61 @@ const PLAN_META: Record<Plan, {
   features: string[]
   featured: boolean
 }> = {
-  chica: {
-    name: 'Plan Empresa Chica',
+  pyme: {
+    name: PLAN_LABELS.pyme,
     description:
       'Para empresas que necesitan datos de precios. Están por iniciar temporada y necesitan precios históricos para fijar los suyos.',
     features: [
-      'Acceso a la plataforma web QSA',
-      'Datos de precios de mercado actualizados',
-      'Tendencias de mercado por producto y destino',
-      'Reportes Price Check',
-      'Información de precios históricos por temporada',
+      'Price Check',
+      'Resumen Ejecutivo',
+      'Base de Datos Compilada',
+      'Beautiful Soup',
+      'Country Index',
     ],
     featured: false,
   },
-  grande: {
-    name: 'Plan Empresa Grande',
+  profesional: {
+    name: PLAN_LABELS.profesional,
     description:
-      'Para empresas que quieren compararse contra su competencia: precios, volúmenes, participación de mercado y desglose por calibre.',
+      'Análisis competitivo, outliers y landscape completo para empresas que necesitan posicionarse estratégicamente.',
     features: [
-      'Acceso completo a la plataforma web QSA',
-      'Dashboards interactivos: MUSSEL · SEAFARM · MOSS METRICS',
-      'Reportes PDF personalizados (4-5 por cliente)',
-      'Análisis competitivo y participación de mercado',
-      'Desglose por calibre (CA1-CA4, EN1-EN4, MV1-MV4)',
-      'Archivos Excel detallados (producto × destino × empresa × calibre)',
-      'Price Check incluido',
-      'Múltiples reportes por período',
+      'Price Check',
+      'Resumen Ejecutivo',
+      'Base de Datos Compilada',
+      'Beautiful Soup',
+      'Country Index',
+      'Outliers Analysis',
+      'Competitive Landscape',
+      'Análisis de Calibres',
     ],
     featured: true,
+  },
+  enterprise: {
+    name: PLAN_LABELS.enterprise,
+    description:
+      'Inteligencia competitiva completa: rankings, market share, calibres, flujos de bienes, clusters y análisis de tendencias.',
+    features: [
+      'Price Check',
+      'Resumen Ejecutivo',
+      'Base de Datos Compilada',
+      'Beautiful Soup',
+      'Country Index',
+      'Outliers Analysis',
+      'Competitive Landscape',
+      'Análisis de Calibres',
+      'Análisis de Patrones de Mercado',
+      'Posicionamiento',
+      'Ranking de Empresas',
+      'Ranking de Mercados',
+      'Análisis de Mix de Productos',
+      'Market Share',
+      'Desempeño Comparado',
+      'Informe de Clientes Extranjeros',
+      'Análisis de Tendencias',
+      'Análisis de Flujos de Bienes',
+      'Análisis de Clusters Jerárquicos',
+    ],
+    featured: false,
   },
 }
 
@@ -56,7 +83,7 @@ export function PreciosClient() {
             Precios
           </p>
           <h1 className="font-display text-5xl lg:text-6xl xl:text-7xl font-medium text-storm-midnight leading-[1.05] tracking-tight max-w-4xl">
-            Dos planes. Pricing en UF.{' '}
+            Tres planes. Pricing en UF.{' '}
             <span className="text-sunset-storm">Sin sorpresas.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-storm-steel leading-relaxed">
@@ -81,9 +108,10 @@ export function PreciosClient() {
 
       <section className="bg-storm-paper pb-16 lg:pb-24">
         <Container>
-          <div id="planes" className="grid lg:grid-cols-2 gap-6">
-            <PlanCard plan="chica" cycle={cycle} />
-            <PlanCard plan="grande" cycle={cycle} />
+          <div id="planes" className="grid lg:grid-cols-3 gap-6">
+            <PlanCard plan="pyme" cycle={cycle} />
+            <PlanCard plan="profesional" cycle={cycle} />
+            <PlanCard plan="enterprise" cycle={cycle} />
           </div>
 
           <p className="mt-10 text-center text-sm text-storm-steel">
@@ -145,7 +173,7 @@ function PlanCard({ plan, cycle }: { plan: Plan; cycle: BillingCycle }) {
     >
       {featured && (
         <div className="absolute -top-3 left-8 px-3 py-1 rounded-full bg-lightning text-storm-midnight font-mono text-[10px] uppercase tracking-wider font-bold">
-          Más completo
+          Mejor valor
         </div>
       )}
 
@@ -155,14 +183,14 @@ function PlanCard({ plan, cycle }: { plan: Plan; cycle: BillingCycle }) {
 
       <div className="mt-4 flex items-baseline gap-2">
         <span className={cn('font-display text-6xl lg:text-7xl font-medium', featured ? 'text-white' : 'text-storm-midnight')}>
-          {price}
+          {plan === 'pyme' ? 1 : price}
         </span>
         <span className={cn('font-mono text-sm', featured ? 'text-storm-spray' : 'text-storm-steel')}>
-          UF / {cycle === 'mensual' ? 'mes' : 'año'}
+          UF / {plan === 'pyme' ? 'mes' : cycle === 'mensual' ? 'mes' : 'año'}
         </span>
       </div>
 
-      {cycle === 'anual' && (
+      {cycle === 'anual' && plan !== 'pyme' && (
         <div className={cn('mt-2 text-xs font-mono', featured ? 'text-storm-spray' : 'text-storm-mist')}>
           ≈ {monthlyEq.toFixed(2)} UF/mes · Ahorras {yearlySaving} UF al año
         </div>

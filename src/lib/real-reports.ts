@@ -61,7 +61,7 @@ export const realReports: RealReport[] = [
     tags: ['toralla', 'mitilicultura', 'qsp', 'overview'],
     uploadDate: '2020-01-31',
     fileSize: '2.7 MB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/qsp_202001_OvwToralla.pdf',
   },
   {
@@ -76,7 +76,7 @@ export const realReports: RealReport[] = [
     tags: ['exportaciones', 'cruce', 'mitilicultura', '2015-2016'],
     uploadDate: '2017-01-15',
     fileSize: '570 KB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/qsp_201701_A_zppo.xlsx',
   },
   {
@@ -91,7 +91,7 @@ export const realReports: RealReport[] = [
     tags: ['calibres', 'ranking', 'mitilicultura', '2022'],
     uploadDate: '2024-01-15',
     fileSize: '47 KB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/qsp_202401_EaKb_JU_A.xlsx',
   },
   {
@@ -106,7 +106,7 @@ export const realReports: RealReport[] = [
     tags: ['cruce', 'calibres', 'destino', 'empresa', '2022'],
     uploadDate: '2024-01-15',
     fileSize: '139 KB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/qsp_202401_ProdDestEmprCalibres_A.xlsx',
   },
   {
@@ -121,7 +121,7 @@ export const realReports: RealReport[] = [
     tags: ['seafarm', 'dashboard', 'acuicultura'],
     uploadDate: '2025-02-15',
     fileSize: '19.6 MB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/SEAFARMMETRICS_202502.html',
   },
   {
@@ -136,7 +136,7 @@ export const realReports: RealReport[] = [
     tags: ['mussel-metrics', 'invcoihuin', 'dashboard'],
     uploadDate: '2024-01-20',
     fileSize: '28.5 MB',
-    plan: 'grande',
+    plan: 'enterprise',
     file: '/informes/InvCoihuin_MMD9.html',
   },
 ]

@@ -13,29 +13,29 @@ export function PruebaSocial() {
               />
             </svg>
             <span className="font-mono text-xs uppercase tracking-[0.18em] text-storm-steel">
-              Prueba social
+              Trayectoria
             </span>
           </div>
 
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight mb-6">
-            5 clientes corporativos.
+            Más de dos décadas
             <br />
-            Relaciones de hasta{" "}
-            <span className="text-sunset-storm">20+ años</span>.
+            entregando{" "}
+            <span className="text-sunset-storm">inteligencia real</span>.
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-storm-steel leading-relaxed">
-            No publicamos sus nombres por confidencialidad. Pero la permanencia
-            habla por sí sola: en B2B chileno, nadie paga dos décadas por algo que
-            no funciona.
+            Relaciones de largo plazo con exportadores chilenos de productos del mar.
+            No publicamos nombres por confidencialidad, pero la permanencia habla por sí sola:
+            en B2B chileno, nadie paga dos décadas por algo que no funciona.
           </p>
 
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {[
               { num: "20+", label: "Años en operación" },
-              { num: "5", label: "Clientes corporativos" },
-              { num: "30+", label: "Proyectos entregados" },
-              { num: "4", label: "Industrias cubiertas" },
+              { num: "138", label: "Empresas analizadas" },
+              { num: "51", label: "Productos del mar" },
+              { num: "16", label: "Mercados de destino" },
             ].map((stat) => (
               <div
                 key={stat.label}
@@ -49,6 +49,26 @@ export function PruebaSocial() {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-16">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-storm-mist mb-6">
+              Industrias que cubrimos
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                'Mejillones', 'Bacalao de profundidad', 'Erizos', 'Centolla',
+                'Salmón', 'Jaibas', 'Choritos', 'Langostino',
+                'Algas', 'Jibia', 'Merluza', 'Trucha',
+              ].map((product) => (
+                <span
+                  key={product}
+                  className="px-4 py-2 rounded-full bg-storm-paper border border-storm-foam text-sm text-storm-steel font-medium"
+                >
+                  {product}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </Container>

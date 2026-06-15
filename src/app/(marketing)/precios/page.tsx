@@ -6,22 +6,30 @@ import { PreciosClient } from "./PreciosClient"
 export const metadata: Metadata = {
   title: "Precios — Planes en UF para exportadores de productos del mar",
   description:
-    "Dos planes en UF con facturación mensual o anual. Empresa Chica desde 1 UF/mes. Empresa Grande desde 7 UF/mes. Prueba gratis 1 mes.",
+    "Tres planes en UF con facturación mensual o anual. Pymes desde 1 UF/mes. Profesional desde 3 UF/mes. Empresas Medianas y Grandes desde 7 UF/mes. Prueba gratis 1 mes.",
 }
 
-const features = [
-  { label: "Acceso plataforma web", chica: true, grande: true },
-  { label: "Datos de precios de mercado", chica: true, grande: true },
-  { label: "Tendencias de mercado", chica: true, grande: true },
-  { label: "Reportes Price Check", chica: true, grande: true },
-  { label: "Análisis competitivo", chica: false, grande: true },
-  { label: "Participación de mercado", chica: false, grande: true },
-  { label: "Desglose por calibre", chica: false, grande: true },
-  { label: "Dashboards interactivos (HTML)", chica: false, grande: true },
-  { label: "Reportes PDF personalizados", chica: false, grande: "4-5 por cliente" },
-  { label: "Archivos Excel detallados", chica: false, grande: true },
-  { label: "Múltiples reportes por período", chica: false, grande: true },
-  { label: "Prueba gratuita 1 mes", chica: true, grande: true },
+type FeatureValue = boolean | string
+
+const features: { label: string; pyme: FeatureValue; profesional: FeatureValue; enterprise: FeatureValue }[] = [
+  { label: "Acceso plataforma web", pyme: true, profesional: true, enterprise: true },
+  { label: "Price Check", pyme: true, profesional: true, enterprise: true },
+  { label: "Resumen Ejecutivo", pyme: true, profesional: true, enterprise: true },
+  { label: "Base de Datos Compilada", pyme: true, profesional: true, enterprise: true },
+  { label: "Country Index", pyme: true, profesional: true, enterprise: true },
+  { label: "Análisis competitivo", pyme: false, profesional: true, enterprise: true },
+  { label: "Outliers Analysis", pyme: false, profesional: true, enterprise: true },
+  { label: "Competitive Landscape", pyme: false, profesional: true, enterprise: true },
+  { label: "Desglose por calibre", pyme: false, profesional: true, enterprise: true },
+  { label: "Ranking de Empresas", pyme: false, profesional: false, enterprise: true },
+  { label: "Ranking de Mercados", pyme: false, profesional: false, enterprise: true },
+  { label: "Market Share", pyme: false, profesional: false, enterprise: true },
+  { label: "Análisis de Tendencias", pyme: false, profesional: false, enterprise: true },
+  { label: "Análisis de Flujos de Bienes", pyme: false, profesional: false, enterprise: true },
+  { label: "Clusters Jerárquicos", pyme: false, profesional: false, enterprise: true },
+  { label: "Dashboards interactivos (HTML)", pyme: false, profesional: true, enterprise: true },
+  { label: "Archivos Excel detallados", pyme: false, profesional: true, enterprise: true },
+  { label: "Prueba gratuita 1 mes", pyme: true, profesional: true, enterprise: true },
 ]
 
 const faqs = [
@@ -31,11 +39,11 @@ const faqs = [
   },
   {
     q: "¿Cuánto es en pesos chilenos?",
-    a: "1 UF ~ CLP $38.000 (referencia junio 2026). Plan Empresa Chica: ~$38.000/mes o ~$380.000/año. Plan Empresa Grande: ~$266.000/mes o ~$2.660.000/año.",
+    a: "1 UF ~ CLP $38.000 (referencia junio 2026). Pyme: ~$38.000/mes o ~$380.000/año. Profesional: ~$114.000/mes o ~$1.140.000/año. Enterprise: ~$266.000/mes o ~$2.660.000/año.",
   },
   {
     q: "¿Qué diferencia hay entre mensual y anual?",
-    a: "Pagando anual ahorras el equivalente a 2 meses: 2 UF/año en Plan Chica y 14 UF/año en Plan Grande. La cobertura y las funcionalidades son idénticas.",
+    a: "Pagando anual ahorras el equivalente a 2 meses: 2 UF/año en Pyme, 6 UF/año en Profesional y 14 UF/año en Enterprise. La cobertura y las funcionalidades son idénticas.",
   },
   {
     q: "¿Puedo pagar en USD?",
@@ -83,10 +91,13 @@ export default function PreciosPage() {
                     Característica
                   </th>
                   <th className="text-center font-mono text-[11px] uppercase tracking-wider text-storm-mist py-4 px-6">
-                    Empresa Chica
+                    Pyme
                   </th>
                   <th className="text-center font-mono text-[11px] uppercase tracking-wider text-storm-midnight bg-lightning/10 py-4 px-6">
-                    Empresa Grande
+                    Profesional
+                  </th>
+                  <th className="text-center font-mono text-[11px] uppercase tracking-wider text-storm-mist py-4 px-6">
+                    Enterprise
                   </th>
                 </tr>
               </thead>
@@ -95,10 +106,13 @@ export default function PreciosPage() {
                   <tr key={f.label} className="hover:bg-storm-paper/50 transition-colors">
                     <td className="py-4 px-6 text-storm-steel text-sm">{f.label}</td>
                     <td className="py-4 px-6 text-center">
-                      <Check value={f.chica} />
+                      <Check value={f.pyme} />
                     </td>
                     <td className="py-4 px-6 text-center bg-lightning/[0.04]">
-                      <Check value={f.grande} />
+                      <Check value={f.profesional} />
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <Check value={f.enterprise} />
                     </td>
                   </tr>
                 ))}
@@ -123,7 +137,7 @@ export default function PreciosPage() {
             {[
               { n: "1", title: "Regístrate gratis", body: "Crea tu cuenta en menos de 1 minuto. Sin tarjeta. Sin compromiso." },
               { n: "2", title: "Prueba por 30 días", body: "Accede a la plataforma completa. Revisa reportes, dashboards y datos." },
-              { n: "3", title: "Elige tu plan", body: "Si te aporta valor, elige Chica o Grande, mensual o anual. Cambias cuando quieras." },
+              { n: "3", title: "Elige tu plan", body: "Si te aporta valor, elige Pyme, Profesional o Enterprise, mensual o anual. Cambias cuando quieras." },
             ].map((s) => (
               <div key={s.n} className="bg-white rounded-2xl p-8 border border-storm-foam">
                 <div className="font-display text-6xl text-lightning mb-4">{s.n}</div>

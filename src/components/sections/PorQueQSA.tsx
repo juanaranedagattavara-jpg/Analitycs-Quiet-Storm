@@ -5,25 +5,25 @@ const cards = [
     icon: <IconCompass />,
     title: "Insiders de tu industria",
     body:
-      "Mejillones, erizos, jaibas, algas. Hablamos calibres CA1-CA4, EN1-EN4, MV1-MV4. Entendemos FOB por destino, spreads por mercado y dinámicas estacionales. +20 años en estas industrias.",
+      "Más de 51 productos del mar y 138 empresas exportadoras bajo análisis. Desde mejillones y bacalao de profundidad hasta erizos, centolla y salmón. Entendemos FOB por destino, spreads por mercado y dinámicas estacionales. +20 años en estas industrias.",
+  },
+  {
+    icon: <IconStorm />,
+    title: "Mercados VUCA necesitan datos duros",
+    body:
+      "Los mercados de exportación son Volátiles, Inciertos, Complejos y Ambiguos. La percepción y el instinto no bastan. Te entregamos las herramientas analíticas y los datos duros para tomar decisiones con confianza.",
   },
   {
     icon: <IconLayers />,
-    title: "Plataforma web con acceso directo",
+    title: "Dashboards hechos a tu medida",
     body:
-      "Ingresa a tu cuenta desde cualquier dispositivo. Reportes PDF, archivos Excel (producto × destino × empresa × calibre) y dashboards HTML interactivos. Todo disponible cuando lo necesites.",
+      "No es un dashboard genérico. Cada informe se construye con la granularidad que necesitas: producto, destino, empresa, calibre. Reportes PDF, archivos Excel y dashboards HTML interactivos disponibles cuando los necesites.",
   },
   {
     icon: <IconUF />,
     title: "Pricing en UF, pensado para Chile",
     body:
-      "Dos planes simples en UF. Sin costos ocultos. Ajustado a la realidad económica chilena y a relaciones de largo plazo. Estándar B2B chileno.",
-  },
-  {
-    icon: <IconMicroscope />,
-    title: "Metodología rigurosa",
-    body:
-      "Fundada por un biólogo (U. de Chile) con MBA (Adolfo Ibáñez) que trabaja con Python y R. Los análisis tienen respaldo metodológico, no son intuiciones.",
+      "Tres planes en UF adaptados a cada tamaño de empresa. Desde Pymes que necesitan Price Check hasta empresas grandes que requieren inteligencia competitiva completa. Sin costos ocultos.",
   },
 ];
 
@@ -77,6 +77,15 @@ function IconCompass() {
   );
 }
 
+function IconStorm() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M7 14c0-2.5 2-4.5 4.5-4.5.5-2.2 2.3-3.8 4.6-3.8 2.6 0 4.7 2.1 4.7 4.7v.5c1.4.4 2.4 1.6 2.4 3.1 0 1.7-1.4 3.1-3.1 3.1H10.5C8.6 17.1 7 15.5 7 14z" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M15 17l-2 4h2.5l-1.5 4 4-5.5h-2.5L17 17h-2z" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
 function IconLayers() {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -95,27 +104,6 @@ function IconUF() {
       <text x="14" y="20" textAnchor="middle" fontFamily="monospace" fontSize="8" fontWeight="700" fill="currentColor">
         UF
       </text>
-    </svg>
-  );
-}
-
-function IconMicroscope() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <path
-        d="M11 4l5 2-1 3-5-2 1-3z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M13 10c2 1 3 3 2 5s-3 3-5 2"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path d="M8 19l4-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <rect x="5" y="19" width="14" height="3" rx="0.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M9 22v2M15 22v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

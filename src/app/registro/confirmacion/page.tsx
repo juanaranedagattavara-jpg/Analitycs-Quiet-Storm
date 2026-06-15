@@ -33,7 +33,7 @@ export default function ConfirmacionPage() {
 
           <div className="grid sm:grid-cols-3 gap-3 text-left mb-8">
             {[
-              { k: 'Plan', v: 'Empresa Grande' },
+              { k: 'Plan', v: 'Acceso completo' },
               { k: 'Estado', v: 'Trial activo' },
               { k: 'Vence en', v: '30 días' },
             ].map((c) => (

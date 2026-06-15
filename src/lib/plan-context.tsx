@@ -54,15 +54,21 @@ function defaultSubscription(plan: Plan): Subscription {
   }
 }
 
-// Stable default for SSR + first-paint snapshots. useSyncExternalStore needs
-// the same reference every call; returning `defaultSubscription()` on each
-// invocation triggers the "infinite loop" warning.
 const SSR_DEFAULT: Subscription = {
-  plan: 'grande',
+  plan: 'enterprise',
   cycle: 'mensual',
   status: 'trial',
   startedAt: '1970-01-01T00:00:00.000Z',
   renewsAt: '1970-01-31T00:00:00.000Z',
+}
+
+const VALID_PLANS: Plan[] = ['pyme', 'profesional', 'enterprise']
+
+function migratePlan(raw: string): Plan {
+  if (raw === 'chica') return 'pyme'
+  if (raw === 'grande') return 'enterprise'
+  if (VALID_PLANS.includes(raw as Plan)) return raw as Plan
+  return 'enterprise'
 }
 
 function readSubscription(fallbackPlan: Plan): Subscription {
@@ -70,13 +76,13 @@ function readSubscription(fallbackPlan: Plan): Subscription {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultSubscription(fallbackPlan)
-    const parsed = JSON.parse(raw) as Subscription
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    const plan = migratePlan(String(parsed.plan || ''))
     if (
-      (parsed.plan === 'chica' || parsed.plan === 'grande') &&
       (parsed.cycle === 'mensual' || parsed.cycle === 'anual') &&
       typeof parsed.startedAt === 'string'
     ) {
-      return parsed
+      return { ...parsed, plan } as Subscription
     }
   } catch {
     /* ignore */
@@ -84,8 +90,6 @@ function readSubscription(fallbackPlan: Plan): Subscription {
   return defaultSubscription(fallbackPlan)
 }
 
-// External store backed by localStorage. useSyncExternalStore is the React 19
-// way to subscribe to external state without setting state inside an effect.
 type Listener = () => void
 
 class SubscriptionStore {
@@ -95,7 +99,7 @@ class SubscriptionStore {
   getSnapshot = (): Subscription => {
     if (typeof window === 'undefined') return SSR_DEFAULT
     if (this.cache !== null) return this.cache
-    this.cache = readSubscription('grande')
+    this.cache = readSubscription('enterprise')
     return this.cache
   }
 

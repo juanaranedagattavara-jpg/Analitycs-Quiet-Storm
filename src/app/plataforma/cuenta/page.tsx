@@ -8,6 +8,7 @@ import { profileStore } from '@/lib/profile-store'
 import {
   PLAN_CONFIGS,
   PLAN_PRICING,
+  PLAN_LABELS,
   getMonthlyEquivalent,
   getYearlyDiscount,
   type Plan,
@@ -22,18 +23,21 @@ import {
 const INVOICES: Invoice[] = []
 const PAYMENT_METHODS: PaymentMethod[] = []
 
-const FEATURE_COMPARISON: { feature: string; chica: string; grande: string }[] = [
-  { feature: 'Acceso plataforma', chica: 'Sí', grande: 'Sí' },
-  { feature: 'Informes mensuales', chica: '4 informes', grande: '7 informes' },
-  { feature: 'Ranking de empresas', chica: 'No incluido', grande: 'Completo' },
-  { feature: 'Desglose por calibre', chica: 'No incluido', grande: 'CA0-CA4 detallado' },
-  { feature: 'Análisis competitivo', chica: 'No incluido', grande: 'Sí' },
-  { feature: 'Datos por empresa', chica: 'No incluido', grande: 'Completo' },
-  { feature: 'Price Check', chica: 'Incluido', grande: 'Incluido' },
-  { feature: 'Exportar a Excel', chica: 'No incluido', grande: 'Sí' },
-  { feature: 'Dashboard interactivo', chica: 'Básico', grande: 'Completo' },
-  { feature: 'Históricos completos', chica: 'Limitado', grande: 'Sí' },
+const FEATURE_COMPARISON: { feature: string; pyme: string; profesional: string; enterprise: string }[] = [
+  { feature: 'Acceso plataforma', pyme: 'Sí', profesional: 'Sí', enterprise: 'Sí' },
+  { feature: 'Informes mensuales', pyme: '4 informes', profesional: '6 informes', enterprise: '10+ informes' },
+  { feature: 'Price Check', pyme: 'Incluido', profesional: 'Incluido', enterprise: 'Incluido' },
+  { feature: 'Ranking de empresas', pyme: 'No incluido', profesional: 'Incluido', enterprise: 'Completo' },
+  { feature: 'Desglose por calibre', pyme: 'No incluido', profesional: 'Incluido', enterprise: 'Detallado' },
+  { feature: 'Análisis competitivo', pyme: 'No incluido', profesional: 'Sí', enterprise: 'Sí' },
+  { feature: 'Datos por empresa', pyme: 'No incluido', profesional: 'No incluido', enterprise: 'Completo' },
+  { feature: 'Exportar a Excel', pyme: 'No incluido', profesional: 'Sí', enterprise: 'Sí' },
+  { feature: 'Market Share', pyme: 'No incluido', profesional: 'No incluido', enterprise: 'Completo' },
+  { feature: 'Análisis de tendencias', pyme: 'No incluido', profesional: 'No incluido', enterprise: 'Sí' },
+  { feature: 'Históricos completos', pyme: 'Limitado', profesional: 'Limitado', enterprise: 'Sí' },
 ]
+
+const ALL_PLANS: Plan[] = ['pyme', 'profesional', 'enterprise']
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso))
@@ -193,7 +197,7 @@ export default function CuentaPage() {
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-storm-mist mb-1">Plan</div>
                 <div className="font-display text-3xl font-medium text-storm-midnight">
-                  {plan === 'chica' ? 'Empresa Chica' : 'Empresa Grande'}
+                  {PLAN_LABELS[plan]}
                 </div>
               </div>
               <div className="sm:ml-auto text-right">
@@ -246,66 +250,56 @@ export default function CuentaPage() {
 
           <Card title="Comparativa de planes">
             <div className="overflow-x-auto -mx-6">
-              <table className="w-full text-sm min-w-[640px]">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="bg-storm-paper">
-                    <th className="text-left px-6 py-3 font-mono text-[11px] uppercase tracking-wider text-storm-mist">
+                    <th className="text-left px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-storm-mist">
                       Característica
                     </th>
-                    <th className={cn(
-                      'text-center px-6 py-3 font-mono text-[11px] uppercase tracking-wider',
-                      plan === 'chica' ? 'bg-storm-midnight text-white' : 'text-storm-mist'
-                    )}>
-                      Empresa Chica
-                      {plan === 'chica' && <ActualBadge />}
-                    </th>
-                    <th className={cn(
-                      'text-center px-6 py-3 font-mono text-[11px] uppercase tracking-wider',
-                      plan === 'grande' ? 'bg-storm-midnight text-white' : 'text-storm-mist'
-                    )}>
-                      Empresa Grande
-                      {plan === 'grande' && <ActualBadge />}
-                    </th>
+                    {ALL_PLANS.map((p) => (
+                      <th key={p} className={cn(
+                        'text-center px-4 py-3 font-mono text-[11px] uppercase tracking-wider',
+                        plan === p ? 'bg-storm-midnight text-white' : 'text-storm-mist'
+                      )}>
+                        {PLAN_LABELS[p]}
+                        {plan === p && <ActualBadge />}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-storm-foam">
                   <tr className="bg-storm-paper/50">
-                    <td className="px-6 py-3 font-medium text-storm-midnight">Precio mensual</td>
-                    <td className="px-6 py-3 text-center font-mono font-semibold text-storm-midnight">
-                      {PLAN_PRICING.chica.mensual} UF
-                    </td>
-                    <td className="px-6 py-3 text-center font-mono font-semibold text-storm-midnight">
-                      {PLAN_PRICING.grande.mensual} UF
-                    </td>
+                    <td className="px-4 py-3 font-medium text-storm-midnight">Precio mensual</td>
+                    {ALL_PLANS.map((p) => (
+                      <td key={p} className="px-4 py-3 text-center font-mono font-semibold text-storm-midnight">
+                        {PLAN_PRICING[p].mensual} UF
+                      </td>
+                    ))}
                   </tr>
                   <tr>
-                    <td className="px-6 py-3 font-medium text-storm-midnight">Precio anual</td>
-                    <td className="px-6 py-3 text-center font-mono font-semibold text-storm-midnight">
-                      {PLAN_PRICING.chica.anual} UF
-                      <div className="text-[10px] text-storm-mist">−{getYearlyDiscount('chica')} UF</div>
-                    </td>
-                    <td className="px-6 py-3 text-center font-mono font-semibold text-storm-midnight">
-                      {PLAN_PRICING.grande.anual} UF
-                      <div className="text-[10px] text-storm-mist">−{getYearlyDiscount('grande')} UF</div>
-                    </td>
+                    <td className="px-4 py-3 font-medium text-storm-midnight">Precio anual</td>
+                    {ALL_PLANS.map((p) => (
+                      <td key={p} className="px-4 py-3 text-center font-mono font-semibold text-storm-midnight">
+                        {PLAN_PRICING[p].anual} UF
+                        <div className="text-[10px] text-storm-mist">−{getYearlyDiscount(p)} UF</div>
+                      </td>
+                    ))}
                   </tr>
                   {FEATURE_COMPARISON.map((row, i) => (
                     <tr key={row.feature} className={i % 2 === 0 ? 'bg-white' : 'bg-storm-paper/30'}>
-                      <td className="px-6 py-3 text-storm-steel">{row.feature}</td>
-                      <td className="px-6 py-3 text-center text-sm">
-                        {row.chica.startsWith('No') ? (
-                          <span className="text-storm-fog">{row.chica}</span>
-                        ) : (
-                          <span className="text-storm-midnight font-medium">{row.chica}</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-3 text-center text-sm">
-                        {row.grande.startsWith('No') ? (
-                          <span className="text-storm-fog">{row.grande}</span>
-                        ) : (
-                          <span className="text-storm-midnight font-medium">{row.grande}</span>
-                        )}
-                      </td>
+                      <td className="px-4 py-3 text-storm-steel">{row.feature}</td>
+                      {ALL_PLANS.map((p) => {
+                        const val = row[p]
+                        return (
+                          <td key={p} className="px-4 py-3 text-center text-sm">
+                            {val.startsWith('No') ? (
+                              <span className="text-storm-fog">{val}</span>
+                            ) : (
+                              <span className="text-storm-midnight font-medium">{val}</span>
+                            )}
+                          </td>
+                        )
+                      })}
                     </tr>
                   ))}
                 </tbody>
@@ -347,7 +341,7 @@ export default function CuentaPage() {
                       <td className="px-6 py-3 font-mono text-storm-midnight">{inv.number}</td>
                       <td className="px-6 py-3 text-storm-steel">{formatDate(inv.date)}</td>
                       <td className="px-6 py-3 text-storm-steel">
-                        {inv.plan === 'chica' ? 'Empresa Chica' : 'Empresa Grande'} · {inv.cycle === 'mensual' ? 'Mensual' : 'Anual'}
+                        {PLAN_LABELS[inv.plan]} · {inv.cycle === 'mensual' ? 'Mensual' : 'Anual'}
                       </td>
                       <td className="px-6 py-3 text-right font-mono text-storm-midnight font-medium">
                         {inv.amountUF} UF
@@ -615,7 +609,7 @@ function PlanSummaryCard({
           Plan actual
         </div>
         <h3 className="font-display text-xl font-semibold text-storm-midnight">
-          {plan === 'chica' ? 'Empresa Chica' : 'Empresa Grande'}
+          {PLAN_LABELS[plan]}
         </h3>
         <p className="font-mono text-sm text-storm-steel mt-1">
           {price} UF/{cycle === 'mensual' ? 'mes' : 'año'}
@@ -772,7 +766,7 @@ function PlanChangeModal({
         </div>
 
         <div className="space-y-3">
-          {(['chica', 'grande'] as const).map((p) => {
+          {ALL_PLANS.map((p) => {
             const isSelected = selPlan === p
             const isCurrent = currentPlan === p && currentCycle === selCycle
             const planPrice = PLAN_PRICING[p][selCycle]
@@ -788,16 +782,14 @@ function PlanChangeModal({
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-display text-base font-semibold text-storm-midnight">
-                    {p === 'chica' ? 'Empresa Chica' : 'Empresa Grande'}
+                    {PLAN_LABELS[p]}
                   </span>
                   <span className="font-mono text-sm font-semibold text-storm-midnight">
                     {planPrice} UF/{selCycle === 'mensual' ? 'mes' : 'año'}
                   </span>
                 </div>
                 <p className="text-xs text-storm-mist">
-                  {p === 'chica'
-                    ? 'Datos de precios, tendencias y price check.'
-                    : 'Inteligencia competitiva completa, calibres y rankings.'}
+                  {PLAN_CONFIGS[p].descripcion}
                 </p>
                 {isCurrent && (
                   <span className="inline-flex mt-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-storm-paper text-storm-steel">

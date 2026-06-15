@@ -322,7 +322,7 @@ export function getDashboardData(_month: number, _year: number, plan: Plan): Das
   const kpi = getKPI()
   const priceTrend = getPriceTrend()
   const destinations = getDestinationData()
-  if (plan === 'chica') {
+  if (plan === 'pyme') {
     return { kpi, priceTrend, destinations, companyRanking: null, caliberBreakdown: null, productRankings: null }
   }
   return {

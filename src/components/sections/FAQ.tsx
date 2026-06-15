@@ -17,8 +17,8 @@ const defaultItems = [
     a: "Acceso completo a la plataforma por 1 mes. Sin tarjeta de crédito. Sin compromiso. Si te aporta valor, eliges tu plan y continúas.",
   },
   {
-    q: "Soy una empresa chica, ¿esto es para mí?",
-    a: "Sí. El Plan Empresa Chica (0,5-1 UF/mes) está diseñado para empresas que necesitan datos de precios e información de mercado para tomar decisiones de temporada.",
+    q: "Soy una Pyme o MicroPyme, ¿esto es para mí?",
+    a: "Sí. El Plan Pymes y MicroPymes (1 UF/mes) está diseñado para empresas que necesitan Price Check, resumen ejecutivo y base de datos compilada para tomar decisiones de precio rápidas.",
   },
   {
     q: "¿Qué productos del mar cubren?",
@@ -30,7 +30,7 @@ const defaultItems = [
   },
   {
     q: "¿Tienen casos de éxito?",
-    a: "Sí. Casos anonimizados disponibles en la plataforma. Con 5 clientes corporativos de hasta 20+ años de relación, la permanencia es nuestra mejor referencia.",
+    a: "Sí. Casos anonimizados disponibles en la plataforma. Con más de dos décadas de relaciones de largo plazo con exportadores chilenos, la permanencia es nuestra mejor referencia.",
   },
 ];
 
