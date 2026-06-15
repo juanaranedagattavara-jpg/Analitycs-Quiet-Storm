@@ -4,8 +4,9 @@ import {
   createContext,
   useContext,
   useCallback,
+  useEffect,
   useMemo,
-  useSyncExternalStore,
+  useState,
   type ReactNode,
 } from 'react'
 import {
@@ -16,45 +17,41 @@ import {
   Subscription,
   SubscriptionStatus,
 } from './types'
+import { profileStore } from './profile-store'
+import {
+  fetchMe,
+  patchSubscription as apiPatchSubscription,
+  cancelSubscription as apiCancelSubscription,
+  reactivateSubscription as apiReactivateSubscription,
+} from './auth/client'
+import type { PublicUser } from './db/types'
 
 interface PlanContextValue {
   plan: Plan
   cycle: BillingCycle
   subscription: Subscription
   planConfig: PlanConfig
+  user: PublicUser | null
 
-  setPlan: (plan: Plan) => void
-  setCycle: (cycle: BillingCycle) => void
-  updateSubscription: (next: Partial<Pick<Subscription, 'plan' | 'cycle'>>) => void
+  setPlan: (plan: Plan) => void | Promise<void>
+  setCycle: (cycle: BillingCycle) => void | Promise<void>
+  updateSubscription: (
+    next: Partial<Pick<Subscription, 'plan' | 'cycle'>>,
+  ) => void | Promise<void>
 
-  cancel: () => void
-  reactivate: () => void
+  cancel: () => void | Promise<void>
+  reactivate: () => void | Promise<void>
 
   canAccess: (feature: keyof PlanConfig['features']) => boolean
   isTrial: boolean
+  isAuthenticated: boolean
+  isAdmin: boolean
+  loading: boolean
 }
 
 const PlanContext = createContext<PlanContextValue | null>(null)
-const STORAGE_KEY = 'qsa.subscription.v1'
 
-function addDays(iso: string, days: number): string {
-  const d = new Date(iso)
-  d.setDate(d.getDate() + days)
-  return d.toISOString()
-}
-
-function defaultSubscription(plan: Plan): Subscription {
-  const now = new Date().toISOString()
-  return {
-    plan,
-    cycle: 'mensual',
-    status: 'trial',
-    startedAt: now,
-    renewsAt: addDays(now, 30),
-  }
-}
-
-const SSR_DEFAULT: Subscription = {
+const FALLBACK_SUBSCRIPTION: Subscription = {
   plan: 'enterprise',
   cycle: 'mensual',
   status: 'trial',
@@ -62,112 +59,120 @@ const SSR_DEFAULT: Subscription = {
   renewsAt: '1970-01-31T00:00:00.000Z',
 }
 
-const VALID_PLANS: Plan[] = ['pyme', 'profesional', 'enterprise']
-
-function migratePlan(raw: string): Plan {
-  if (raw === 'chica') return 'pyme'
-  if (raw === 'grande') return 'enterprise'
-  if (VALID_PLANS.includes(raw as Plan)) return raw as Plan
-  return 'enterprise'
+interface ServerSubscription {
+  plan: Plan
+  cycle: BillingCycle
+  status: SubscriptionStatus
+  started_at: string
+  renews_at: string
+  cancel_at: string | null
 }
 
-function readSubscription(fallbackPlan: Plan): Subscription {
-  if (typeof window === 'undefined') return defaultSubscription(fallbackPlan)
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return defaultSubscription(fallbackPlan)
-    const parsed = JSON.parse(raw) as Record<string, unknown>
-    const plan = migratePlan(String(parsed.plan || ''))
-    if (
-      (parsed.cycle === 'mensual' || parsed.cycle === 'anual') &&
-      typeof parsed.startedAt === 'string'
-    ) {
-      return { ...parsed, plan } as Subscription
-    }
-  } catch {
-    /* ignore */
-  }
-  return defaultSubscription(fallbackPlan)
-}
-
-type Listener = () => void
-
-class SubscriptionStore {
-  private listeners = new Set<Listener>()
-  private cache: Subscription | null = null
-
-  getSnapshot = (): Subscription => {
-    if (typeof window === 'undefined') return SSR_DEFAULT
-    if (this.cache !== null) return this.cache
-    this.cache = readSubscription('enterprise')
-    return this.cache
-  }
-
-  getServerSnapshot = (): Subscription => SSR_DEFAULT
-
-  subscribe = (listener: Listener): (() => void) => {
-    this.listeners.add(listener)
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        this.cache = null
-        listener()
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => {
-      this.listeners.delete(listener)
-      window.removeEventListener('storage', onStorage)
-    }
-  }
-
-  update = (next: Subscription): void => {
-    this.cache = next
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-    } catch {
-      /* ignore */
-    }
-    this.listeners.forEach((l) => l())
-  }
-
-  patch = (patch: Partial<Subscription>): void => {
-    this.update({ ...this.getSnapshot(), ...patch })
+function normalizeFromServer(s: ServerSubscription): Subscription {
+  return {
+    plan: s.plan,
+    cycle: s.cycle,
+    status: s.status,
+    startedAt: s.started_at,
+    renewsAt: s.renews_at,
+    cancelAt: s.cancel_at ?? undefined,
   }
 }
 
-const store = new SubscriptionStore()
+interface ClientSubscriptionFromAPI {
+  plan: Plan
+  cycle: BillingCycle
+  status: SubscriptionStatus
+  startedAt: string
+  renewsAt: string
+  cancelAt?: string | null
+}
+
+function normalizeFromClient(s: ClientSubscriptionFromAPI): Subscription {
+  return {
+    plan: s.plan,
+    cycle: s.cycle,
+    status: s.status,
+    startedAt: s.startedAt,
+    renewsAt: s.renewsAt,
+    cancelAt: s.cancelAt ?? undefined,
+  }
+}
 
 export function PlanProvider({ children }: { children: ReactNode }) {
-  const subscription = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getServerSnapshot
-  )
+  const [subscription, setSubscription] = useState<Subscription>(FALLBACK_SUBSCRIPTION)
+  const [user, setUser] = useState<PublicUser | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const updateSubscription = useCallback<PlanContextValue['updateSubscription']>(
-    (next) => store.patch(next),
-    []
-  )
-
-  const setPlan = useCallback((p: Plan) => store.patch({ plan: p }), [])
-  const setCycle = useCallback((c: BillingCycle) => store.patch({ cycle: c }), [])
-
-  const cancel = useCallback(() => {
-    const current = store.getSnapshot()
-    store.update({
-      ...current,
-      status: 'cancelled' as SubscriptionStatus,
-      cancelAt: current.renewsAt,
-    })
+  useEffect(() => {
+    let cancelled = false
+    fetchMe()
+      .then((data) => {
+        if (cancelled) return
+        if (data.user) {
+          setIsAuthenticated(true)
+          setUser(data.user)
+          profileStore.bootstrap({
+            name: data.user.name || '',
+            email: data.user.email || '',
+            company: data.user.company || '',
+            phone: data.user.phone || '',
+            rut: data.user.rut || '',
+            memberSince: new Date(data.user.createdAt).toLocaleDateString('es-CL', {
+              month: 'long',
+              year: 'numeric',
+            }),
+          })
+        } else {
+          setIsAuthenticated(false)
+          setUser(null)
+          profileStore.clear()
+        }
+        if (data.subscription) {
+          setSubscription(normalizeFromServer(data.subscription))
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsAuthenticated(false)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const reactivate = useCallback(() => {
-    const current = store.getSnapshot()
-    store.update({
-      ...current,
-      status: current.status === 'cancelled' ? 'active' : current.status,
-      cancelAt: undefined,
-    })
+  const updateSubscription = useCallback<PlanContextValue['updateSubscription']>(
+    async (next) => {
+      const { subscription: updated } = await apiPatchSubscription({
+        plan: next.plan,
+        cycle: next.cycle,
+      })
+      setSubscription(normalizeFromClient(updated))
+    },
+    [],
+  )
+
+  const setPlan = useCallback(async (p: Plan) => {
+    const { subscription: updated } = await apiPatchSubscription({ plan: p })
+    setSubscription(normalizeFromClient(updated))
+  }, [])
+
+  const setCycle = useCallback(async (c: BillingCycle) => {
+    const { subscription: updated } = await apiPatchSubscription({ cycle: c })
+    setSubscription(normalizeFromClient(updated))
+  }, [])
+
+  const cancel = useCallback(async () => {
+    const { subscription: updated } = await apiCancelSubscription()
+    setSubscription(normalizeFromClient(updated))
+  }, [])
+
+  const reactivate = useCallback(async () => {
+    const { subscription: updated } = await apiReactivateSubscription()
+    setSubscription(normalizeFromClient(updated))
   }, [])
 
   const planConfig = PLAN_CONFIGS[subscription.plan]
@@ -177,7 +182,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       const value = PLAN_CONFIGS[subscription.plan].features[feature]
       return typeof value === 'boolean' ? value : true
     },
-    [subscription.plan]
+    [subscription.plan],
   )
 
   const value = useMemo<PlanContextValue>(
@@ -186,6 +191,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       cycle: subscription.cycle,
       subscription,
       planConfig,
+      user,
       setPlan,
       setCycle,
       updateSubscription,
@@ -193,8 +199,23 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       reactivate,
       canAccess,
       isTrial: subscription.status === 'trial',
+      isAuthenticated,
+      isAdmin: user?.role === 'admin',
+      loading,
     }),
-    [subscription, planConfig, setPlan, setCycle, updateSubscription, cancel, reactivate, canAccess]
+    [
+      subscription,
+      planConfig,
+      user,
+      setPlan,
+      setCycle,
+      updateSubscription,
+      cancel,
+      reactivate,
+      canAccess,
+      isAuthenticated,
+      loading,
+    ],
   )
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>

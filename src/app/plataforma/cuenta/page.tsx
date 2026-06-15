@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
 import { profileStore } from '@/lib/profile-store'
+import { patchProfile, ApiError } from '@/lib/auth/client'
 import {
   PLAN_CONFIGS,
   PLAN_PRICING,
@@ -14,14 +15,7 @@ import {
   type Plan,
   type BillingCycle,
   type UserProfile,
-  type Invoice,
-  type PaymentMethod,
 } from '@/lib/types'
-
-// Real invoices and payment methods come from the billing backend.
-// Until the user has any, both sections show an empty state — no fake data.
-const INVOICES: Invoice[] = []
-const PAYMENT_METHODS: PaymentMethod[] = []
 
 const FEATURE_COMPARISON: { feature: string; pyme: string; profesional: string; enterprise: string }[] = [
   { feature: 'Acceso plataforma', pyme: 'Sí', profesional: 'Sí', enterprise: 'Sí' },
@@ -52,6 +46,17 @@ function daysBetween(iso: string): number {
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)))
 }
 
+interface BillingInvoice {
+  id: string
+  number: string
+  issued_at: string
+  amount_uf: number
+  amount_clp: number
+  status: 'paid' | 'pending' | 'failed' | 'refunded'
+  plan: Plan
+  cycle: BillingCycle
+}
+
 export default function CuentaPage() {
   const { plan, cycle, subscription, isTrial, updateSubscription, cancel, reactivate } = usePlan()
 
@@ -66,10 +71,69 @@ export default function CuentaPage() {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
   const [tab, setTab] = useState<'general' | 'suscripcion' | 'facturacion' | 'pago' | 'seguridad'>('general')
+  const [invoices, setInvoices] = useState<BillingInvoice[]>([])
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null)
 
-  function saveProfile(next: UserProfile) {
-    profileStore.set(next)
-    setEditingProfile(false)
+  useEffect(() => {
+    fetch('/api/invoices', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : { invoices: [] }))
+      .then((data: { invoices?: BillingInvoice[] }) => setInvoices(data.invoices || []))
+      .catch(() => setInvoices([]))
+  }, [])
+
+  async function saveProfile(next: UserProfile) {
+    setProfileError(null)
+    try {
+      await patchProfile({
+        name: next.name,
+        company: next.company,
+        phone: next.phone || null,
+        rut: next.rut || null,
+      })
+      profileStore.set(next)
+      setEditingProfile(false)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setProfileError(err.message || 'No pudimos guardar tu perfil')
+      } else {
+        setProfileError('Hubo un problema. Intenta de nuevo.')
+      }
+    }
+  }
+
+  async function startCheckout(targetPlan: Plan, targetCycle: BillingCycle) {
+    setCheckoutLoading(true)
+    setCheckoutNotice(null)
+    try {
+      const res = await fetch('/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ plan: targetPlan, cycle: targetCycle }),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        checkoutUrl?: string | null
+        pendingConfiguration?: boolean
+        message?: string
+        error?: string
+      }
+      if (!res.ok) {
+        setCheckoutNotice(data.error || 'No pudimos iniciar el pago.')
+      } else if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+      } else {
+        setCheckoutNotice(
+          data.message ||
+            'Pasarela Mercado Pago en configuración. Tu factura quedó pendiente y se activará cuando esté conectada.',
+        )
+      }
+    } catch {
+      setCheckoutNotice('Error de conexión con la pasarela de pago.')
+    } finally {
+      setCheckoutLoading(false)
+    }
   }
 
   const price = PLAN_PRICING[plan][cycle]
@@ -122,6 +186,11 @@ export default function CuentaPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card title="Información personal" icon={<UserIcon />}>
+              {profileError && (
+                <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                  {profileError}
+                </div>
+              )}
               {editingProfile ? (
                 <ProfileEditor profile={profile} onCancel={() => setEditingProfile(false)} onSave={saveProfile} />
               ) : (
@@ -312,14 +381,14 @@ export default function CuentaPage() {
       {/* Facturación */}
       {tab === 'facturacion' && (
         <Card title="Historial de facturas" icon={<DocumentIcon />}>
-          {INVOICES.length === 0 ? (
+          {invoices.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-storm-paper flex items-center justify-center mb-4 text-storm-mist">
                 <DocumentIcon />
               </div>
               <p className="text-sm font-medium text-storm-midnight">Aún no hay facturas emitidas</p>
               <p className="text-xs text-storm-mist mt-1">
-                Cuando se genere la primera factura aparecerá aquí, descargable como PDF.
+                Cuando inicies un pago aparecerán aquí. La primera factura se genera al activar tu plan tras el trial.
               </p>
             </div>
           ) : (
@@ -332,20 +401,19 @@ export default function CuentaPage() {
                     <th className="text-left px-6 py-3 font-mono text-[11px] uppercase tracking-wider text-storm-mist">Plan</th>
                     <th className="text-right px-6 py-3 font-mono text-[11px] uppercase tracking-wider text-storm-mist">Monto</th>
                     <th className="text-left px-6 py-3 font-mono text-[11px] uppercase tracking-wider text-storm-mist">Estado</th>
-                    <th className="px-6 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-storm-foam">
-                  {INVOICES.map((inv) => (
+                  {invoices.map((inv) => (
                     <tr key={inv.id} className="hover:bg-storm-paper/40 transition-colors">
                       <td className="px-6 py-3 font-mono text-storm-midnight">{inv.number}</td>
-                      <td className="px-6 py-3 text-storm-steel">{formatDate(inv.date)}</td>
+                      <td className="px-6 py-3 text-storm-steel">{formatDate(inv.issued_at)}</td>
                       <td className="px-6 py-3 text-storm-steel">
                         {PLAN_LABELS[inv.plan]} · {inv.cycle === 'mensual' ? 'Mensual' : 'Anual'}
                       </td>
                       <td className="px-6 py-3 text-right font-mono text-storm-midnight font-medium">
-                        {inv.amountUF} UF
-                        <div className="text-[10px] text-storm-mist">{formatCLP(inv.amountCLP)}</div>
+                        {inv.amount_uf} UF
+                        <div className="text-[10px] text-storm-mist">{formatCLP(inv.amount_clp)}</div>
                       </td>
                       <td className="px-6 py-3">
                         <span className={cn(
@@ -353,12 +421,10 @@ export default function CuentaPage() {
                           inv.status === 'paid' && 'bg-green-50 text-green-700 border-green-200',
                           inv.status === 'pending' && 'bg-amber-50 text-amber-700 border-amber-200',
                           inv.status === 'failed' && 'bg-red-50 text-red-700 border-red-200',
+                          inv.status === 'refunded' && 'bg-storm-paper text-storm-steel border-storm-foam',
                         )}>
-                          {inv.status === 'paid' ? 'Pagada' : inv.status === 'pending' ? 'Pendiente' : 'Fallida'}
+                          {inv.status === 'paid' ? 'Pagada' : inv.status === 'pending' ? 'Pendiente' : inv.status === 'refunded' ? 'Reembolsada' : 'Fallida'}
                         </span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <button className="text-xs font-semibold text-storm-midnight hover:text-lightning">Descargar PDF</button>
                       </td>
                     </tr>
                   ))}
@@ -371,46 +437,50 @@ export default function CuentaPage() {
 
       {/* Pago */}
       {tab === 'pago' && (
-        <Card title="Métodos de pago" icon={<CardIcon />}>
-          {PAYMENT_METHODS.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-storm-paper flex items-center justify-center mb-4 text-storm-mist">
-                <CardIcon />
-              </div>
-              <p className="text-sm font-medium text-storm-midnight">No tienes métodos de pago configurados</p>
-              <p className="text-xs text-storm-mist mt-1 mb-6 max-w-sm mx-auto">
-                Agrega un método cuando termine tu trial para no perder acceso a la plataforma.
-              </p>
-              <button className="px-5 py-2.5 rounded-xl bg-storm-midnight text-white text-sm font-semibold hover:bg-storm-deep transition-colors">
-                + Agregar método de pago
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {PAYMENT_METHODS.map((pm) => (
-                <div key={pm.id} className="flex items-center justify-between p-4 rounded-xl border border-storm-foam bg-storm-paper/30">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-8 rounded bg-storm-midnight text-lightning font-mono text-[10px] uppercase font-bold flex items-center justify-center">
-                      {pm.brand}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-storm-midnight">•••• {pm.last4}</div>
-                      <div className="text-xs text-storm-mist">Vence {pm.expiry}</div>
-                    </div>
-                    {pm.isDefault && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-lightning/20 text-storm-midnight text-[10px] font-mono uppercase tracking-wider font-semibold">
-                        Predeterminada
-                      </span>
-                    )}
-                  </div>
-                  <button className="text-xs font-medium text-storm-steel hover:text-storm-midnight">Editar</button>
-                </div>
-              ))}
+        <Card title="Activar plan o renovar" icon={<CardIcon />}>
+          {checkoutNotice && (
+            <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              {checkoutNotice}
             </div>
           )}
-          <p className="mt-6 text-xs text-storm-mist">
-            QSA usa pasarela de pago compatible con tarjetas Visa, Mastercard y transferencia bancaria.
-            Tus datos se procesan en infraestructura PCI-DSS certificada.
+          <p className="text-sm text-storm-steel leading-relaxed mb-6">
+            QSA usa <strong>Mercado Pago</strong>. Tarjetas Visa, Mastercard, transferencia bancaria
+            y otros medios de pago disponibles en Chile. Tus datos se procesan en infraestructura
+            PCI-DSS certificada por Mercado Pago.
+          </p>
+
+          <div className="rounded-xl border border-storm-foam bg-storm-paper/40 p-5 mb-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white border border-storm-foam flex items-center justify-center text-storm-midnight font-mono text-[10px] font-bold">
+                MP
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-storm-midnight">
+                  Plan {PLAN_LABELS[plan]} · {cycle === 'mensual' ? 'Mensual' : 'Anual'}
+                </div>
+                <div className="text-xs text-storm-mist mt-0.5">
+                  {price} UF{cycle === 'anual' ? '/año' : '/mes'} — se cobra en CLP al tipo de cambio UF del día.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => startCheckout(plan, cycle)}
+              disabled={checkoutLoading}
+              className={cn(
+                'mt-4 w-full px-5 py-3 rounded-xl text-sm font-semibold transition-colors',
+                checkoutLoading
+                  ? 'bg-storm-foam text-storm-fog cursor-not-allowed'
+                  : 'bg-storm-midnight text-white hover:bg-storm-deep',
+              )}
+            >
+              {checkoutLoading ? 'Conectando con Mercado Pago…' : 'Pagar con Mercado Pago →'}
+            </button>
+          </div>
+
+          <p className="text-xs text-storm-fog">
+            Si tu trial sigue vigente puedes seguir usando la plataforma sin pagar todavía. Al
+            finalizar el período de prueba se te pedirá activar tu plan para mantener acceso.
           </p>
         </Card>
       )}

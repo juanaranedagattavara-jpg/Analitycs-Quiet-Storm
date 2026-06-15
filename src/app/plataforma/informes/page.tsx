@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
-import { getRealReports } from '@/lib/real-reports'
+import { listReports, type ClientReport } from '@/lib/reports/client'
 import { formatMonthYear } from '@/lib/export-utils'
-import type { Report, ReportType, Industry, Plan } from '@/lib/types'
+import type { Report, ReportType, Industry } from '@/lib/types'
 import { PLAN_LABELS } from '@/lib/types'
 
 const INDUSTRY_OPTIONS: { value: string; label: string }[] = [
@@ -95,13 +95,6 @@ function IndustryLabel({ industry }: { industry: Industry }) {
   return <span className="text-xs text-storm-mist">{labels[industry]}</span>
 }
 
-function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
-  if (reportPlan === 'ambos') return true
-  if (userPlan === 'enterprise') return true
-  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
-  return reportPlan === 'pyme'
-}
-
 function UpgradeBanner() {
   return (
     <div className="bg-gradient-to-r from-storm-midnight to-storm-deep rounded-2xl p-5 border border-storm-navy">
@@ -111,43 +104,55 @@ function UpgradeBanner() {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 1l2 4.5H15l-3.5 3 1.5 5L8 11l-5 2.5 1.5-5L1 5.5h5L8 1z" stroke="#f7c948" strokeWidth="1.2" strokeLinejoin="round" fill="#f7c948" fillOpacity="0.2" />
             </svg>
-            <h3 className="text-sm font-semibold text-white">
-              Accede a todos los informes
-            </h3>
+            <h3 className="text-sm font-semibold text-white">Accede a todos los informes</h3>
           </div>
           <p className="text-xs text-storm-spray">
             Con Plan Enterprise obtienes acceso completo a rankings, análisis competitivo y datos detallados por empresa.
           </p>
         </div>
-        <button className="btn-lightning rounded-lg h-9 px-5 text-xs font-semibold whitespace-nowrap flex-shrink-0">
+        <Link
+          href="/plataforma/cuenta"
+          className="btn-lightning rounded-lg h-9 px-5 text-xs font-semibold whitespace-nowrap flex-shrink-0 inline-flex items-center"
+        >
           Mejorar plan
-        </button>
+        </Link>
       </div>
     </div>
   )
 }
 
 export default function InformesPage() {
-  const { plan } = usePlan()
+  const { plan, loading: planLoading } = usePlan()
   const [selectedIndustry, setSelectedIndustry] = useState<string>('todas')
   const [selectedType, setSelectedType] = useState<string>('todos')
 
-  const allReports = useMemo(() => getRealReports(), [])
+  const [allReports, setAllReports] = useState<ClientReport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (planLoading) return
+    listReports()
+      .then(({ reports }) => setAllReports(reports))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [planLoading])
+
+  const accessibleReports = useMemo(
+    () => allReports.filter((r) => r.accessible !== false),
+    [allReports],
+  )
 
   const filteredReports = useMemo(() => {
-    let filtered = allReports.filter((r) => canAccessReport(r.plan, plan))
-    if (selectedIndustry !== 'todas') {
-      filtered = filtered.filter((r) => r.industry === selectedIndustry)
-    }
-    if (selectedType !== 'todos') {
-      filtered = filtered.filter((r) => r.type === selectedType)
-    }
+    let filtered = accessibleReports
+    if (selectedIndustry !== 'todas') filtered = filtered.filter((r) => r.industry === selectedIndustry)
+    if (selectedType !== 'todos') filtered = filtered.filter((r) => r.type === selectedType)
     return filtered
-  }, [allReports, plan, selectedIndustry, selectedType])
+  }, [accessibleReports, selectedIndustry, selectedType])
 
   const lockedCount = useMemo(() => {
     if (plan === 'enterprise') return 0
-    return allReports.filter((r) => !canAccessReport(r.plan, plan)).length
+    return allReports.filter((r) => r.accessible === false).length
   }, [allReports, plan])
 
   const selectClasses =
@@ -161,15 +166,13 @@ export default function InformesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl lg:text-3xl font-bold text-storm-midnight">
-          Informes
-        </h1>
+        <h1 className="font-display text-2xl lg:text-3xl font-bold text-storm-midnight">Informes</h1>
         <p className="text-sm text-storm-mist mt-1">
-          Biblioteca de reportes cargados por el cliente — PDF, Excel y dashboards interactivos.
+          Biblioteca de reportes — PDF, Excel y dashboards interactivos.
         </p>
       </div>
 
-      {plan === 'pyme' && lockedCount > 0 && <UpgradeBanner />}
+      {plan !== 'enterprise' && lockedCount > 0 && <UpgradeBanner />}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <select
@@ -182,7 +185,6 @@ export default function InformesPage() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
@@ -195,80 +197,88 @@ export default function InformesPage() {
         </select>
       </div>
 
-      <p className="text-sm text-storm-mist">
-        {filteredReports.length} {filteredReports.length === 1 ? 'informe encontrado' : 'informes encontrados'}
-        {plan === 'pyme' && lockedCount > 0 && (
-          <span className="text-storm-fog"> ({lockedCount} informes adicionales disponibles en Plan Enterprise)</span>
-        )}
-      </p>
-
-      {filteredReports.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-storm-foam p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-storm-paper mx-auto flex items-center justify-center mb-4">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#8aa5b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 4h10l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" />
-              <path d="M16 4v6h6" />
-            </svg>
-          </div>
-          <p className="text-storm-steel font-medium">No se encontraron informes</p>
-          <p className="text-sm text-storm-mist mt-1">Prueba ajustando los filtros</p>
-        </div>
+      {loading ? (
+        <p className="text-sm text-storm-mist">Cargando informes…</p>
+      ) : error ? (
+        <div className="bg-white rounded-2xl border border-red-200 p-6 text-sm text-red-700">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredReports.map((report) => (
-            <div
-              key={report.id}
-              className="bg-white rounded-2xl p-6 border border-storm-foam card-lift flex flex-col"
-            >
-              <div className="flex items-start gap-4">
-                <ReportTypeIcon type={report.type} />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-storm-midnight text-sm leading-snug line-clamp-2">
-                    {report.title}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <IndustryLabel industry={report.industry} />
-                    <span className="text-storm-foam">|</span>
-                    <PlanBadge plan={report.plan} />
+        <>
+          <p className="text-sm text-storm-mist">
+            {filteredReports.length} {filteredReports.length === 1 ? 'informe encontrado' : 'informes encontrados'}
+            {lockedCount > 0 && (
+              <span className="text-storm-fog"> ({lockedCount} adicionales en plan superior)</span>
+            )}
+          </p>
+
+          {filteredReports.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-storm-foam p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-storm-paper mx-auto flex items-center justify-center mb-4">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#8aa5b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 4h10l6 6v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                  <path d="M16 4v6h6" />
+                </svg>
+              </div>
+              <p className="text-storm-steel font-medium">No se encontraron informes</p>
+              <p className="text-sm text-storm-mist mt-1">Prueba ajustando los filtros</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="bg-white rounded-2xl p-6 border border-storm-foam card-lift flex flex-col"
+                >
+                  <div className="flex items-start gap-4">
+                    <ReportTypeIcon type={report.type} />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-storm-midnight text-sm leading-snug line-clamp-2">
+                        {report.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <IndustryLabel industry={report.industry} />
+                        <span className="text-storm-foam">|</span>
+                        <PlanBadge plan={report.plan} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-storm-mist mt-3 line-clamp-2 leading-relaxed flex-1">
+                    {report.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {report.tags.slice(0, 4).map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-storm-paper text-storm-steel"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-storm-foam/60">
+                    <div className="flex items-center gap-3 text-xs text-storm-fog">
+                      <span>{formatMonthYear(report.month, report.year)}</span>
+                      {report.fileSize && (
+                        <>
+                          <span className="text-storm-foam">|</span>
+                          <span>{report.fileSize}</span>
+                        </>
+                      )}
+                    </div>
+                    <Link
+                      href={`/plataforma/informes/${report.id}`}
+                      className="text-xs font-semibold text-storm-midnight hover:text-lightning transition-colors"
+                    >
+                      Ver informe
+                    </Link>
                   </div>
                 </div>
-              </div>
-
-              <p className="text-xs text-storm-mist mt-3 line-clamp-2 leading-relaxed flex-1">
-                {report.description}
-              </p>
-
-              <div className="flex flex-wrap gap-1.5 mt-3">
-                {report.tags.slice(0, 4).map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-storm-paper text-storm-steel"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-storm-foam/60">
-                <div className="flex items-center gap-3 text-xs text-storm-fog">
-                  <span>{formatMonthYear(report.month, report.year)}</span>
-                  {report.fileSize && (
-                    <>
-                      <span className="text-storm-foam">|</span>
-                      <span>{report.fileSize}</span>
-                    </>
-                  )}
-                </div>
-                <Link
-                  href={`/plataforma/informes/${report.id}`}
-                  className="text-xs font-semibold text-storm-midnight hover:text-lightning transition-colors"
-                >
-                  Ver informe
-                </Link>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   )

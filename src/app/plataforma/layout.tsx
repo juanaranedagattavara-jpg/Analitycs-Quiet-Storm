@@ -2,17 +2,19 @@
 
 import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { PlanProvider, usePlan } from '@/lib/plan-context'
 import { profileStore } from '@/lib/profile-store'
+import { logout as apiLogout } from '@/lib/auth/client'
 import { PLAN_SHORT_LABELS, PLAN_PRICING } from '@/lib/types'
 import type { Plan } from '@/lib/types'
 
-const navItems = [
+const baseNavItems = [
   {
     href: '/plataforma',
     label: 'Dashboard',
+    adminOnly: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="7" height="7" rx="1.5" />
@@ -25,6 +27,7 @@ const navItems = [
   {
     href: '/plataforma/informes',
     label: 'Informes',
+    adminOnly: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 2h8l4 4v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" />
@@ -36,6 +39,7 @@ const navItems = [
   {
     href: '/plataforma/historico',
     label: 'Historico',
+    adminOnly: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="10" cy="10" r="8" />
@@ -46,6 +50,7 @@ const navItems = [
   {
     href: '/plataforma/admin',
     label: 'Admin',
+    adminOnly: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="10" cy="10" r="3" />
@@ -57,39 +62,37 @@ const navItems = [
 
 const PLAN_REPORTS: Record<Plan, number> = { pyme: 4, profesional: 6, enterprise: 10 }
 
-function PlanSwitcher() {
-  const { plan, cycle, setPlan, isTrial } = usePlan()
+function PlanBadge() {
+  const { plan, cycle, isTrial, subscription } = usePlan()
   const pricing = PLAN_PRICING[plan]
   const price = cycle === 'mensual' ? `${pricing.mensual} UF/mes` : `${pricing.anual} UF/año`
   const reports = PLAN_REPORTS[plan]
+  const statusLabels: Record<string, string> = {
+    trial: 'Prueba',
+    active: 'Activo',
+    cancelled: 'Cancelado',
+    past_due: 'Atrasado',
+  }
+  const statusLabel = statusLabels[subscription.status] || 'Activo'
 
   return (
-    <div className="px-3 py-3">
+    <div className="px-3 py-3 border-t border-storm-deep">
       <p className="px-3 mb-2 font-mono text-[10px] uppercase tracking-[0.15em] text-storm-fog">
         Plan activo
       </p>
-      <div className="flex rounded-lg bg-storm-deep p-1 gap-1">
-        {(['pyme', 'profesional', 'enterprise'] as const).map((p) => (
-          <button
-            key={p}
-            onClick={() => setPlan(p)}
-            className={cn(
-              'flex-1 px-2 py-2 rounded-md text-xs font-semibold transition-all duration-200',
-              plan === p
-                ? 'bg-lightning text-storm-midnight shadow-sm'
-                : 'text-storm-fog hover:text-storm-spray'
-            )}
-          >
-            {PLAN_SHORT_LABELS[p]}
-          </button>
-        ))}
-      </div>
-      <div className="mt-2 px-3">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-storm-spray">
-          <span className="w-1.5 h-1.5 rounded-full bg-lightning" />
+      <div className="px-3 py-2.5 rounded-lg bg-storm-deep border border-storm-navy">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-white">{PLAN_SHORT_LABELS[plan]}</span>
+          <span className={cn(
+            'px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider',
+            isTrial ? 'bg-lightning/20 text-lightning' : 'bg-green-500/20 text-green-400'
+          )}>
+            {statusLabel}
+          </span>
+        </div>
+        <p className="text-[11px] text-storm-fog mt-1 font-mono">
           {price} · {reports} informes/mes
-          {isTrial && <span className="ml-1 px-1.5 py-0.5 rounded bg-lightning/30 text-lightning text-[9px] font-bold uppercase">Trial</span>}
-        </span>
+        </p>
       </div>
     </div>
   )
@@ -97,6 +100,8 @@ function PlanSwitcher() {
 
 function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean; setSidebarOpen: (v: boolean) => void }) {
   const pathname = usePathname()
+  const { isAdmin } = usePlan()
+  const navItems = baseNavItems.filter((i) => !i.adminOnly || isAdmin)
 
   return (
     <aside
@@ -157,8 +162,8 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
         </Link>
       </div>
 
-      {/* Plan Switcher */}
-      <PlanSwitcher />
+      {/* Plan Badge */}
+      <PlanBadge />
 
       {/* Nav links + user (Mi Cuenta sits directly under Admin) */}
       <nav className="px-3 py-2 space-y-1 overflow-y-auto border-t border-storm-deep">
@@ -195,6 +200,7 @@ function SidebarContent({ sidebarOpen, setSidebarOpen }: { sidebarOpen: boolean;
 }
 
 function UserSidebarLink({ pathname, onNavigate }: { pathname: string; onNavigate: () => void }) {
+  const router = useRouter()
   const profile = useSyncExternalStore(
     profileStore.subscribe,
     profileStore.getSnapshot,
@@ -206,25 +212,48 @@ function UserSidebarLink({ pathname, onNavigate }: { pathname: string; onNavigat
     : name.split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() ?? '').join('') || '?'
   const subtitle = profile.email || 'Completa tu perfil'
 
+  async function onLogout(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    await apiLogout().catch(() => undefined)
+    profileStore.clear()
+    router.push('/login')
+    router.refresh()
+  }
+
   return (
-    <Link
-      href="/plataforma/cuenta"
-      onClick={onNavigate}
-      className={cn(
-        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-        pathname.startsWith('/plataforma/cuenta')
-          ? 'bg-storm-deep text-lightning'
-          : 'text-storm-spray hover:bg-storm-deep/60 hover:text-white'
-      )}
-    >
-      <div className="w-8 h-8 rounded-full bg-storm-navy flex items-center justify-center text-storm-fog text-xs font-bold flex-shrink-0">
-        {initials}
-      </div>
-      <div className="flex flex-col min-w-0">
-        <span className="text-sm truncate">{name}</span>
-        <span className="text-[10px] text-storm-fog truncate">{subtitle}</span>
-      </div>
-    </Link>
+    <div className="space-y-1">
+      <Link
+        href="/plataforma/cuenta"
+        onClick={onNavigate}
+        className={cn(
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+          pathname.startsWith('/plataforma/cuenta')
+            ? 'bg-storm-deep text-lightning'
+            : 'text-storm-spray hover:bg-storm-deep/60 hover:text-white'
+        )}
+      >
+        <div className="w-8 h-8 rounded-full bg-storm-navy flex items-center justify-center text-storm-fog text-xs font-bold flex-shrink-0">
+          {initials}
+        </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm truncate">{name}</span>
+          <span className="text-[10px] text-storm-fog truncate">{subtitle}</span>
+        </div>
+      </Link>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-storm-fog hover:bg-storm-deep/60 hover:text-storm-spray transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3" />
+          <path d="M10 11l3-3-3-3" />
+          <path d="M13 8H6" />
+        </svg>
+        Cerrar sesión
+      </button>
+    </div>
   )
 }
 

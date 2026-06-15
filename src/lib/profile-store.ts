@@ -2,9 +2,6 @@ import type { UserProfile } from './types'
 
 const KEY = 'qsa.profile.v1'
 
-// Empty defaults — no AI-invented user. The real profile is filled in via
-// /registro on signup and stored in localStorage; until then everything is
-// blank and the UI shows a "complete tu perfil" empty state.
 const DEFAULT_PROFILE: UserProfile = {
   name: '',
   email: '',
@@ -48,23 +45,33 @@ class ProfileStore {
 
   subscribe = (listener: Listener): (() => void) => {
     this.listeners.add(listener)
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === KEY) {
-        this.cache = null
-        listener()
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => {
-      this.listeners.delete(listener)
-      window.removeEventListener('storage', onStorage)
-    }
+    return () => this.listeners.delete(listener)
   }
 
   set = (next: UserProfile): void => {
     this.cache = next
     try {
       window.localStorage.setItem(KEY, JSON.stringify(next))
+    } catch {
+      /* ignore */
+    }
+    this.listeners.forEach((l) => l())
+  }
+
+  bootstrap = (next: UserProfile): void => {
+    this.cache = next
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(next))
+    } catch {
+      /* ignore */
+    }
+    this.listeners.forEach((l) => l())
+  }
+
+  clear = (): void => {
+    this.cache = DEFAULT_PROFILE
+    try {
+      window.localStorage.removeItem(KEY)
     } catch {
       /* ignore */
     }

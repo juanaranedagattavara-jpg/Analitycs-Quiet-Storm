@@ -1,13 +1,12 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
-import { usePlan } from '@/lib/plan-context'
-import { getRealReport, type RealReport } from '@/lib/real-reports'
+import { getReport, downloadUrl, inlineUrl, type ClientReport } from '@/lib/reports/client'
 import { formatMonthYear } from '@/lib/export-utils'
-import type { Report, ReportType, Plan } from '@/lib/types'
+import type { ReportType } from '@/lib/types'
 import { PLAN_LABELS } from '@/lib/types'
 
 function TypeBadge({ type }: { type: ReportType }) {
@@ -32,33 +31,26 @@ const INDUSTRY_LABELS: Record<string, string> = {
   general: 'General',
 }
 
-function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
-  if (reportPlan === 'ambos') return true
-  if (userPlan === 'enterprise') return true
-  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
-  return reportPlan === 'pyme'
-}
+function ReportFileViewer({ report }: { report: ClientReport }) {
+  const previewSrc = inlineUrl(report.id)
+  const dlSrc = downloadUrl(report.id)
 
-function ReportFileViewer({ report }: { report: RealReport }) {
-  const isHtml = report.file.endsWith('.html')
-  const isPdf = report.file.endsWith('.pdf')
-
-  if (isHtml) {
+  if (report.type === 'dashboard' || report.type === 'pdf') {
     return (
       <div className="bg-white rounded-2xl border border-storm-foam overflow-hidden">
         <div className="px-6 py-3 border-b border-storm-foam flex items-center justify-between">
-          <p className="text-xs text-storm-mist font-mono">{report.file.split('/').pop()}</p>
+          <p className="text-xs text-storm-mist font-mono truncate">{report.title}</p>
           <a
-            href={report.file}
+            href={previewSrc}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-semibold text-storm-midnight hover:text-lightning"
+            className="text-xs font-semibold text-storm-midnight hover:text-lightning whitespace-nowrap ml-3"
           >
             Abrir en pestaña nueva ↗
           </a>
         </div>
         <iframe
-          src={report.file}
+          src={previewSrc}
           title={report.title}
           loading="lazy"
           sandbox="allow-same-origin allow-scripts allow-popups"
@@ -68,43 +60,6 @@ function ReportFileViewer({ report }: { report: RealReport }) {
     )
   }
 
-  if (isPdf) {
-    return (
-      <div className="bg-white rounded-2xl border border-storm-foam overflow-hidden">
-        <div className="px-6 py-3 border-b border-storm-foam flex items-center justify-between">
-          <p className="text-xs text-storm-mist font-mono">{report.file.split('/').pop()}</p>
-          <a
-            href={report.file}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-storm-midnight hover:text-lightning"
-          >
-            Abrir en pestaña nueva ↗
-          </a>
-        </div>
-        <object
-          data={report.file}
-          type="application/pdf"
-          className="w-full h-[80vh]"
-        >
-          <div className="p-8 text-center">
-            <p className="text-sm text-storm-mist">
-              Tu navegador no puede mostrar el PDF directamente.
-            </p>
-            <a
-              href={report.file}
-              download
-              className="inline-flex items-center gap-2 mt-4 px-5 py-2 rounded-lg bg-storm-midnight text-white text-sm font-medium"
-            >
-              Descargar PDF
-            </a>
-          </div>
-        </object>
-      </div>
-    )
-  }
-
-  // Excel / other binary
   return (
     <div className="bg-white rounded-2xl border border-storm-foam p-8 lg:p-12 text-center max-w-2xl mx-auto">
       <div className="w-20 h-20 rounded-2xl bg-green-50 mx-auto flex items-center justify-center mb-6">
@@ -115,14 +70,11 @@ function ReportFileViewer({ report }: { report: RealReport }) {
         </svg>
       </div>
       <h3 className="font-display text-xl font-semibold text-storm-midnight mb-2">
-        Archivo Excel
+        Archivo {report.type === 'excel' ? 'Excel' : 'descargable'}
       </h3>
-      <p className="text-sm text-storm-mist mb-6 leading-relaxed">
-        {report.description}
-      </p>
+      <p className="text-sm text-storm-mist mb-6 leading-relaxed">{report.description}</p>
       <a
-        href={report.file}
-        download
+        href={dlSrc}
         className="btn-lightning rounded-full h-12 px-8 text-sm font-semibold inline-flex items-center gap-2"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -130,31 +82,65 @@ function ReportFileViewer({ report }: { report: RealReport }) {
           <path d="M9 1v4h4" />
           <path d="M8 8v4M6 10l2 2 2-2" />
         </svg>
-        Descargar Excel
+        Descargar archivo
       </a>
     </div>
+  )
+}
+
+function BackLink() {
+  return (
+    <Link
+      href="/plataforma/informes"
+      className="inline-flex items-center gap-2 text-sm text-storm-mist hover:text-storm-midnight transition-colors"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 12L6 8l4-4" />
+      </svg>
+      Volver a informes
+    </Link>
   )
 }
 
 export default function ReportViewerPage() {
   const params = useParams()
   const reportId = params.id as string
-  const { plan } = usePlan()
 
-  const report = useMemo(() => getRealReport(reportId), [reportId])
+  const [report, setReport] = useState<ClientReport | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
 
-  if (!report) {
+  useEffect(() => {
+    getReport(reportId)
+      .then(({ report }) => {
+        setReport(report)
+        if (report.accessible === false) setForbidden(true)
+      })
+      .catch((err: Error) => {
+        const msg = err.message.toLowerCase()
+        if (msg.includes('403') || msg.includes('restring') || msg.includes('plan')) {
+          setForbidden(true)
+        } else {
+          setNotFound(true)
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [reportId])
+
+  if (loading) {
     return (
       <div className="space-y-6">
-        <Link
-          href="/plataforma/informes"
-          className="inline-flex items-center gap-2 text-sm text-storm-mist hover:text-storm-midnight transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 12L6 8l4-4" />
-          </svg>
-          Volver a informes
-        </Link>
+        <BackLink />
+        <p className="text-sm text-storm-mist">Cargando informe…</p>
+      </div>
+    )
+  }
+
+  if (notFound || !report) {
+    return (
+      <div className="space-y-6">
+        <BackLink />
         <div className="bg-white rounded-2xl border border-storm-foam p-12 text-center">
           <h2 className="font-display text-xl font-semibold text-storm-midnight mb-2">
             Informe no encontrado
@@ -167,21 +153,10 @@ export default function ReportViewerPage() {
     )
   }
 
-  const hasAccess = canAccessReport(report.plan, plan)
-
-  if (!hasAccess) {
+  if (forbidden) {
     return (
       <div className="space-y-6">
-        <Link
-          href="/plataforma/informes"
-          className="inline-flex items-center gap-2 text-sm text-storm-mist hover:text-storm-midnight transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 12L6 8l4-4" />
-          </svg>
-          Volver a informes
-        </Link>
-
+        <BackLink />
         <div className="bg-white rounded-2xl border border-storm-foam p-8 lg:p-12 text-center max-w-lg mx-auto">
           <div className="w-16 h-16 rounded-2xl bg-storm-paper mx-auto flex items-center justify-center mb-6">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#5b7a8f" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -192,15 +167,16 @@ export default function ReportViewerPage() {
           <h2 className="font-display text-xl font-semibold text-storm-midnight mb-2">
             Informe exclusivo de plan superior
           </h2>
-          <p className="text-sm text-storm-mist mb-2 leading-relaxed">
-            {report.title}
-          </p>
+          <p className="text-sm text-storm-mist mb-2 leading-relaxed">{report.title}</p>
           <p className="text-xs text-storm-fog mb-6">
             Este informe requiere el plan {report.plan === 'enterprise' ? PLAN_LABELS.enterprise : PLAN_LABELS.profesional}.
           </p>
-          <button className="btn-lightning rounded-xl h-11 px-8 text-sm font-semibold inline-flex items-center gap-2">
+          <Link
+            href="/plataforma/cuenta"
+            className="btn-lightning rounded-xl h-11 px-8 text-sm font-semibold inline-flex items-center gap-2"
+          >
             Mejorar mi plan
-          </button>
+          </Link>
         </div>
       </div>
     )
@@ -208,15 +184,7 @@ export default function ReportViewerPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/plataforma/informes"
-        className="inline-flex items-center gap-2 text-sm text-storm-mist hover:text-storm-midnight transition-colors"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10 12L6 8l4-4" />
-        </svg>
-        Volver a informes
-      </Link>
+      <BackLink />
 
       <div className="bg-white rounded-2xl p-6 border border-storm-foam">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -227,12 +195,8 @@ export default function ReportViewerPage() {
                 {INDUSTRY_LABELS[report.industry]}
               </span>
             </div>
-            <h1 className="font-display text-xl lg:text-2xl font-bold text-storm-midnight">
-              {report.title}
-            </h1>
-            <p className="text-sm text-storm-mist leading-relaxed max-w-2xl">
-              {report.description}
-            </p>
+            <h1 className="font-display text-xl lg:text-2xl font-bold text-storm-midnight">{report.title}</h1>
+            <p className="text-sm text-storm-mist leading-relaxed max-w-2xl">{report.description}</p>
             <div className="flex items-center gap-3 text-xs text-storm-fog">
               <span>{formatMonthYear(report.month, report.year)}</span>
               {report.fileSize && (
@@ -248,8 +212,7 @@ export default function ReportViewerPage() {
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
-              href={report.file}
-              download
+              href={downloadUrl(report.id)}
               className="btn-lightning rounded-lg h-9 px-4 text-sm font-semibold inline-flex items-center gap-2"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

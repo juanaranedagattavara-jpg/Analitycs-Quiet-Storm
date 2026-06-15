@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
-import type { Plan, BillingCycle } from '@/lib/types'
+import { register, ApiError, type RegisterPayload } from '@/lib/auth/client'
 
 const INDUSTRIES = [
   { value: 'mitilicultura', label: 'Mitilicultura (mejillones)' },
@@ -23,37 +23,9 @@ const COMPANY_SIZES = [
 interface FieldErrors {
   name?: string
   email?: string
+  password?: string
   company?: string
   phone?: string
-}
-
-const STORAGE_PROFILE = 'qsa.profile.v1'
-const STORAGE_SUB = 'qsa.subscription.v1'
-
-function persistTrial(planHint: Plan, profile: Record<string, string>) {
-  if (typeof window === 'undefined') return
-  const now = new Date()
-  const renewsAt = new Date(now)
-  renewsAt.setDate(renewsAt.getDate() + 30)
-  const memberSince = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(now)
-  try {
-    window.localStorage.setItem(
-      STORAGE_SUB,
-      JSON.stringify({
-        plan: planHint,
-        cycle: 'mensual' as BillingCycle,
-        status: 'trial',
-        startedAt: now.toISOString(),
-        renewsAt: renewsAt.toISOString(),
-      })
-    )
-    window.localStorage.setItem(
-      STORAGE_PROFILE,
-      JSON.stringify({ ...profile, memberSince: memberSince.charAt(0).toUpperCase() + memberSince.slice(1) })
-    )
-  } catch {
-    /* ignore quota / private-mode */
-  }
 }
 
 function validateEmail(value: string): boolean {
@@ -64,18 +36,27 @@ export function RegistroForm() {
   const router = useRouter()
   const params = useSearchParams()
   const planParam = params.get('plan')
-  const intent = planParam === 'pyme' ? 'pyme' : planParam === 'profesional' ? 'profesional' : 'enterprise'
+  const intent =
+    planParam === 'pyme'
+      ? 'pyme'
+      : planParam === 'profesional'
+        ? 'profesional'
+        : planParam === 'enterprise'
+          ? 'enterprise'
+          : 'enterprise'
 
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [company, setCompany] = useState('')
   const [phone, setPhone] = useState('')
-  const [industry, setIndustry] = useState<typeof INDUSTRIES[number]['value']>('mitilicultura')
-  const [size, setSize] = useState<typeof COMPANY_SIZES[number]['value']>(intent)
+  const [industry, setIndustry] = useState<(typeof INDUSTRIES)[number]['value']>('mitilicultura')
+  const [size, setSize] = useState<(typeof COMPANY_SIZES)[number]['value']>(intent)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   function validate(): FieldErrors {
@@ -83,6 +64,8 @@ export function RegistroForm() {
     if (!name.trim()) next.name = 'Tu nombre es obligatorio'
     if (!email.trim()) next.email = 'El email es obligatorio'
     else if (!validateEmail(email)) next.email = 'Email inválido'
+    if (!password) next.password = 'La contraseña es obligatoria'
+    else if (password.length < 8) next.password = 'Mínimo 8 caracteres'
     if (!company.trim()) next.company = 'El nombre de la empresa es obligatorio'
     if (phone && !/^[\d\s+()-]{6,}$/.test(phone)) next.phone = 'Teléfono inválido'
     return next
@@ -90,18 +73,41 @@ export function RegistroForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setTouched({ name: true, email: true, company: true, phone: true })
+    setServerError(null)
+    setTouched({ name: true, email: true, password: true, company: true, phone: true })
     const v = validate()
     setErrors(v)
     if (Object.keys(v).length > 0) return
 
     setSubmitting(true)
-    // In production this would call the signup API. For now we simulate the
-    // round-trip and persist locally so the platform recognises the user.
-    await new Promise((r) => setTimeout(r, 600))
-    const planHint: Plan = size === 'pyme' ? 'pyme' : size === 'profesional' ? 'profesional' : 'enterprise'
-    persistTrial(planHint, { name, email, company, phone, industry, size })
-    router.push('/registro/confirmacion')
+    try {
+      const payload: RegisterPayload = {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        company: company.trim(),
+        phone: phone.trim() || undefined,
+        industry,
+        size,
+        acceptedTerms: true,
+      }
+      await register(payload)
+      router.push('/registro/confirmacion')
+      router.refresh()
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          setServerError('Ya existe una cuenta con ese email. Intenta iniciar sesión.')
+        } else if (err.status === 429) {
+          setServerError('Demasiados intentos. Espera un momento e intenta de nuevo.')
+        } else {
+          setServerError(err.message || 'No pudimos completar el registro.')
+        }
+      } else {
+        setServerError('Hubo un problema. Verifica tu conexión e intenta de nuevo.')
+      }
+      setSubmitting(false)
+    }
   }
 
   const inputClasses = (key: keyof FieldErrors) =>
@@ -109,7 +115,7 @@ export function RegistroForm() {
       'w-full px-4 py-3 rounded-xl border bg-white text-storm-midnight placeholder:text-storm-fog focus:ring-2 focus:ring-lightning/30 outline-none transition-all text-sm',
       errors[key] && touched[key]
         ? 'border-red-300 focus:border-red-400'
-        : 'border-storm-foam focus:border-lightning'
+        : 'border-storm-foam focus:border-lightning',
     )
 
   return (
@@ -118,12 +124,14 @@ export function RegistroForm() {
       className="rounded-2xl bg-white border border-storm-foam p-8 lg:p-10 shadow-sm"
       noValidate
     >
-      <h2 className="font-display text-2xl font-semibold text-storm-midnight">
-        Crea tu cuenta
-      </h2>
-      <p className="text-sm text-storm-mist mt-1">
-        Tarda menos de 1 minuto. Sin tarjeta.
-      </p>
+      <h2 className="font-display text-2xl font-semibold text-storm-midnight">Crea tu cuenta</h2>
+      <p className="text-sm text-storm-mist mt-1">Tarda menos de 1 minuto. Sin tarjeta.</p>
+
+      {serverError && (
+        <div className="mt-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          {serverError}
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Field label="Nombre completo *" htmlFor="r-name" error={touched.name ? errors.name : undefined}>
@@ -151,6 +159,20 @@ export function RegistroForm() {
             placeholder="tu@empresa.cl"
             className={inputClasses('email')}
             aria-invalid={!!(touched.email && errors.email)}
+          />
+        </Field>
+
+        <Field label="Contraseña *" htmlFor="r-password" error={touched.password ? errors.password : undefined}>
+          <input
+            id="r-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+            placeholder="Mínimo 8 caracteres"
+            className={inputClasses('password')}
+            aria-invalid={!!(touched.password && errors.password)}
           />
         </Field>
 
@@ -190,7 +212,9 @@ export function RegistroForm() {
             className={inputClasses('name')}
           >
             {INDUSTRIES.map((i) => (
-              <option key={i.value} value={i.value}>{i.label}</option>
+              <option key={i.value} value={i.value}>
+                {i.label}
+              </option>
             ))}
           </select>
         </Field>
@@ -203,7 +227,9 @@ export function RegistroForm() {
             className={inputClasses('name')}
           >
             {COMPANY_SIZES.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
             ))}
           </select>
         </Field>
@@ -219,9 +245,14 @@ export function RegistroForm() {
         />
         <span className="text-sm text-storm-steel leading-relaxed">
           Acepto los{' '}
-          <Link href="/legal/terminos" className="underline text-storm-midnight">términos</Link>
-          {' '}y la{' '}
-          <Link href="/legal/privacidad" className="underline text-storm-midnight">política de privacidad</Link>.
+          <Link href="/legal/terminos" className="underline text-storm-midnight">
+            términos
+          </Link>{' '}
+          y la{' '}
+          <Link href="/legal/privacidad" className="underline text-storm-midnight">
+            política de privacidad
+          </Link>
+          .
         </span>
       </label>
 
@@ -232,7 +263,7 @@ export function RegistroForm() {
           'mt-8 w-full h-14 rounded-full font-semibold inline-flex items-center justify-center gap-2 transition-all',
           submitting || !acceptedTerms
             ? 'bg-storm-foam text-storm-fog cursor-not-allowed'
-            : 'btn-lightning'
+            : 'btn-lightning',
         )}
       >
         {submitting ? (
@@ -246,6 +277,13 @@ export function RegistroForm() {
 
       <p className="text-center mt-4 text-xs text-storm-fog">
         Sin tarjeta. Cancelas cuando quieras desde Mi Cuenta.
+      </p>
+
+      <p className="text-center mt-4 text-sm text-storm-mist">
+        ¿Ya tienes cuenta?{' '}
+        <Link href="/login" className="font-semibold text-storm-midnight hover:text-lightning">
+          Iniciar sesión
+        </Link>
       </p>
     </form>
   )
@@ -280,7 +318,13 @@ function Spinner() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" className="animate-spin">
       <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
-      <path d="M14 8a6 6 0 00-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path
+        d="M14 8a6 6 0 00-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   )
 }

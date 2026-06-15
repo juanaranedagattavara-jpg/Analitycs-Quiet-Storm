@@ -1,28 +1,16 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
-import {
-  getRealReports,
-  getRealReportPeriods,
-  type RealReport,
-} from '@/lib/real-reports'
-import type { Report, Plan } from '@/lib/types'
+import { listReports, type ClientReport } from '@/lib/reports/client'
 import { PLAN_LABELS } from '@/lib/types'
 
 const MONTH_NAMES_ES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
-
-function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
-  if (reportPlan === 'ambos') return true
-  if (userPlan === 'enterprise') return true
-  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
-  return reportPlan === 'pyme'
-}
 
 const reportTypeLabels: Record<string, string> = {
   pdf: 'PDF',
@@ -47,36 +35,59 @@ const planLabels: Record<string, string> = {
 
 export default function HistoricoPage() {
   const { plan } = usePlan()
-  const allReports = useMemo(() => getRealReports(), [])
-  const periods = useMemo(() => getRealReportPeriods(), [])
+  const [allReports, setAllReports] = useState<ClientReport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState<{ month: number; year: number } | null>(null)
 
-  // Group reports by year for the year tabs
+  useEffect(() => {
+    listReports()
+      .then(({ reports }) => setAllReports(reports))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const periods = useMemo(() => {
+    const seen = new Set<string>()
+    const out: { month: number; year: number }[] = []
+    for (const r of allReports) {
+      const k = `${r.year}-${r.month}`
+      if (!seen.has(k)) {
+        seen.add(k)
+        out.push({ month: r.month, year: r.year })
+      }
+    }
+    out.sort((a, b) => b.year - a.year || b.month - a.month)
+    return out
+  }, [allReports])
+
   const years = useMemo(() => {
     const set = new Set<number>()
     periods.forEach((p) => set.add(p.year))
     return [...set].sort((a, b) => b - a)
   }, [periods])
 
-  const [selectedYear, setSelectedYear] = useState<number>(years[0] ?? 2024)
+  const [selectedYear, setSelectedYear] = useState<number>(0)
+
+  const effectiveYear = selectedYear !== 0 ? selectedYear : (years[0] ?? 0)
 
   const periodsForYear = useMemo(
-    () => periods.filter((p) => p.year === selectedYear),
-    [periods, selectedYear]
+    () => periods.filter((p) => p.year === effectiveYear),
+    [periods, effectiveYear],
   )
 
   const expandedData = useMemo(() => {
     if (selectedPeriod === null) return null
     const all = allReports.filter(
-      (r) => r.month === selectedPeriod.month && r.year === selectedPeriod.year
+      (r) => r.month === selectedPeriod.month && r.year === selectedPeriod.year,
     )
-    const accessible = all.filter((r) => canAccessReport(r.plan, plan))
+    const accessible = all.filter((r) => r.accessible !== false)
     return { reports: accessible, lockedCount: all.length - accessible.length }
-  }, [selectedPeriod, allReports, plan])
+  }, [selectedPeriod, allReports])
 
-  function getReportsForPeriod(month: number, year: number): RealReport[] {
+  function getReportsForPeriod(month: number, year: number): ClientReport[] {
     return allReports.filter(
-      (r) => r.month === month && r.year === year && canAccessReport(r.plan, plan)
+      (r) => r.month === month && r.year === year && r.accessible !== false,
     )
   }
 
@@ -86,17 +97,17 @@ export default function HistoricoPage() {
         <h1 className="font-display text-2xl lg:text-3xl font-bold text-storm-midnight">
           Archivo Histórico
         </h1>
-        <p className="text-sm text-storm-mist mt-1">
-          Informes archivados disponibles para tu plan.
-        </p>
+        <p className="text-sm text-storm-mist mt-1">Informes archivados disponibles para tu plan.</p>
       </div>
 
-      {years.length === 0 ? (
+      {loading ? (
+        <p className="text-sm text-storm-mist">Cargando…</p>
+      ) : error ? (
+        <div className="bg-white rounded-2xl border border-red-200 p-6 text-sm text-red-700">{error}</div>
+      ) : years.length === 0 ? (
         <div className="bg-white rounded-2xl border border-storm-foam p-12 text-center">
           <p className="text-storm-steel font-medium">Sin informes cargados</p>
-          <p className="text-sm text-storm-mist mt-1">
-            Cuando se publiquen informes aparecerán aquí.
-          </p>
+          <p className="text-sm text-storm-mist mt-1">Cuando se publiquen informes aparecerán aquí.</p>
         </div>
       ) : (
         <>
@@ -110,9 +121,9 @@ export default function HistoricoPage() {
                 }}
                 className={cn(
                   'px-6 py-3 rounded-xl font-mono text-sm font-semibold transition-all',
-                  selectedYear === year
+                  effectiveYear === year
                     ? 'bg-storm-midnight text-white shadow-lg'
-                    : 'bg-white border border-storm-foam text-storm-steel hover:bg-storm-foam hover:text-storm-midnight'
+                    : 'bg-white border border-storm-foam text-storm-steel hover:bg-storm-foam hover:text-storm-midnight',
                 )}
               >
                 {year}
@@ -135,13 +146,13 @@ export default function HistoricoPage() {
                     'rounded-2xl p-5 text-left transition-all',
                     isSelected
                       ? 'bg-storm-midnight text-white shadow-lg'
-                      : 'bg-white border border-storm-foam hover:border-storm-spray hover:shadow-md card-lift'
+                      : 'bg-white border border-storm-foam hover:border-storm-spray hover:shadow-md card-lift',
                   )}
                 >
                   <div
                     className={cn(
                       'font-display text-lg font-medium',
-                      isSelected ? 'text-white' : 'text-storm-midnight'
+                      isSelected ? 'text-white' : 'text-storm-midnight',
                     )}
                   >
                     {MONTH_NAMES_ES[p.month - 1]}
@@ -149,7 +160,7 @@ export default function HistoricoPage() {
                   <div
                     className={cn(
                       'mt-2 font-mono text-xs',
-                      isSelected ? 'text-storm-spray' : 'text-storm-mist'
+                      isSelected ? 'text-storm-spray' : 'text-storm-mist',
                     )}
                   >
                     {reports.length} {reports.length === 1 ? 'informe' : 'informes'}
@@ -167,9 +178,12 @@ export default function HistoricoPage() {
                     {MONTH_NAMES_ES[selectedPeriod.month - 1]} {selectedPeriod.year}
                   </h2>
                   <p className="mt-1 text-storm-steel text-sm">
-                    {expandedData.reports.length} {expandedData.reports.length === 1 ? 'informe disponible' : 'informes disponibles'}
-                    {plan === 'pyme' && expandedData.lockedCount > 0 && (
-                      <span className="text-storm-fog"> ({expandedData.lockedCount} adicionales en Plan Enterprise)</span>
+                    {expandedData.reports.length}{' '}
+                    {expandedData.reports.length === 1 ? 'informe disponible' : 'informes disponibles'}
+                    {plan !== 'enterprise' && expandedData.lockedCount > 0 && (
+                      <span className="text-storm-fog">
+                        {' '}({expandedData.lockedCount} en plan superior)
+                      </span>
                     )}
                   </p>
                 </div>
@@ -189,7 +203,7 @@ export default function HistoricoPage() {
                         <span
                           className={cn(
                             'inline-flex px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider border',
-                            reportTypeColors[report.type]
+                            reportTypeColors[report.type],
                           )}
                         >
                           {reportTypeLabels[report.type]}
@@ -198,18 +212,12 @@ export default function HistoricoPage() {
                           {planLabels[report.plan]}
                         </span>
                       </div>
-                      <h4 className="text-sm font-medium text-storm-midnight">
-                        {report.title}
-                      </h4>
-                      <p className="text-xs text-storm-mist mt-0.5 line-clamp-1">
-                        {report.description}
-                      </p>
+                      <h4 className="text-sm font-medium text-storm-midnight">{report.title}</h4>
+                      <p className="text-xs text-storm-mist mt-0.5 line-clamp-1">{report.description}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       {report.fileSize && (
-                        <span className="font-mono text-xs text-storm-fog">
-                          {report.fileSize}
-                        </span>
+                        <span className="font-mono text-xs text-storm-fog">{report.fileSize}</span>
                       )}
                       <Link
                         href={`/plataforma/informes/${report.id}`}
@@ -221,10 +229,10 @@ export default function HistoricoPage() {
                   </div>
                 ))}
 
-                {plan === 'pyme' && expandedData.lockedCount > 0 && (
+                {plan !== 'enterprise' && expandedData.lockedCount > 0 && (
                   <div className="mt-4 p-4 rounded-xl bg-storm-midnight/5 border border-storm-foam text-center">
                     <span className="text-sm font-medium text-storm-steel">
-                      {expandedData.lockedCount} informes adicionales en Plan Enterprise
+                      {expandedData.lockedCount} informes adicionales en plan superior
                     </span>
                   </div>
                 )}
