@@ -202,19 +202,34 @@ export default async function IndustriaPage({
       {/* Pricing strip */}
       <section className="py-16 lg:py-20 bg-storm-midnight text-white">
         <Container size="md">
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-3 gap-6">
             <div className="rounded-2xl bg-storm-deep border border-white/10 p-8">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-lightning mb-3">
-                Plan Empresa Grande
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-storm-spray mb-3">
+                Plan Pyme
               </div>
-              <div className="font-display text-5xl font-medium mb-2">60–80 UF</div>
-              <div className="font-mono text-xs text-storm-fog mb-6">por año</div>
+              <div className="font-display text-5xl font-medium mb-2">1 UF</div>
+              <div className="font-mono text-xs text-storm-fog mb-6">por mes</div>
               <p className="text-sm text-storm-spray leading-relaxed mb-6">
-                Acceso completo a {ind.badge}, reportes PDF personalizados,
-                Excel detallados, análisis competitivo.
+                Price Check, Resumen Ejecutivo y Base de Datos Compilada. Ideal para iniciar temporada con respaldo de datos.
               </p>
               <Link
-                href="/precios#plan-grande"
+                href="/precios#plan-pyme"
+                className="text-sm text-lightning hover:underline inline-flex items-center gap-2"
+              >
+                Ver detalle →
+              </Link>
+            </div>
+            <div className="rounded-2xl bg-storm-deep border border-lightning/30 p-8">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-lightning mb-3">
+                Plan Profesional
+              </div>
+              <div className="font-display text-5xl font-medium mb-2">3 UF</div>
+              <div className="font-mono text-xs text-storm-fog mb-6">por mes</div>
+              <p className="text-sm text-storm-spray leading-relaxed mb-6">
+                Análisis competitivo, outliers y landscape para {ind.badge}.
+              </p>
+              <Link
+                href="/precios#plan-profesional"
                 className="text-sm text-lightning hover:underline inline-flex items-center gap-2"
               >
                 Ver detalle →
@@ -222,16 +237,15 @@ export default async function IndustriaPage({
             </div>
             <div className="rounded-2xl bg-storm-deep border border-white/10 p-8">
               <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-storm-spray mb-3">
-                Plan Empresa Chica
+                Plan Enterprise
               </div>
-              <div className="font-display text-5xl font-medium mb-2">0,5–1 UF</div>
+              <div className="font-display text-5xl font-medium mb-2">7 UF</div>
               <div className="font-mono text-xs text-storm-fog mb-6">por mes</div>
               <p className="text-sm text-storm-spray leading-relaxed mb-6">
-                Datos de precios de mercado, tendencias, Price Check. Ideal para
-                iniciar temporada con respaldo de datos.
+                Acceso completo a {ind.badge}: rankings, market share, calibres y flujos de bienes.
               </p>
               <Link
-                href="/precios#plan-chica"
+                href="/precios#plan-enterprise"
                 className="text-sm text-lightning hover:underline inline-flex items-center gap-2"
               >
                 Ver detalle →

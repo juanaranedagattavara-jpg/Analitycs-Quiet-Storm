@@ -16,7 +16,7 @@ const pasos = [
   {
     n: "03",
     title: "Elige tu plan",
-    body: "Empresa Grande o Empresa Chica según tu necesidad. Pago online con pasarela integrada.",
+    body: "Tres planes según el tamaño de tu empresa: Pyme, Profesional o Enterprise. Pago online con pasarela integrada.",
   },
   {
     n: "04",

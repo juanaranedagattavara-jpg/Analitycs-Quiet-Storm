@@ -62,11 +62,14 @@ export default function RegistroPage() {
                 Después del trial
               </p>
               <p className="text-sm text-storm-steel leading-relaxed">
-                Sigues en{" "}
-                <span className="font-semibold text-storm-midnight">Plan Empresa Grande</span>{" "}
-                desde <span className="font-mono">7 UF/mes</span> o{" "}
-                <span className="font-mono">70 UF/año</span> (ahorras 14 UF). Puedes
-                bajarte a Empresa Chica o cancelar cuando quieras desde Mi Cuenta.
+                Elige entre tres planes:{" "}
+                <span className="font-semibold text-storm-midnight">Pymes</span>{" "}
+                desde <span className="font-mono">1 UF/mes</span>,{" "}
+                <span className="font-semibold text-storm-midnight">Profesional</span>{" "}
+                desde <span className="font-mono">3 UF/mes</span> o{" "}
+                <span className="font-semibold text-storm-midnight">Empresas Medianas y Grandes</span>{" "}
+                desde <span className="font-mono">7 UF/mes</span>. Cambias o
+                cancelas cuando quieras desde Mi Cuenta.
               </p>
             </div>
           </div>

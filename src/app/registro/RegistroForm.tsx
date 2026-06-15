@@ -14,8 +14,9 @@ const INDUSTRIES = [
 ] as const
 
 const COMPANY_SIZES = [
-  { value: 'chica', label: 'Empresa Chica · necesito datos de precios' },
-  { value: 'grande', label: 'Empresa Grande · necesito inteligencia competitiva' },
+  { value: 'pyme', label: 'Pyme o MicroPyme · necesito datos de precios' },
+  { value: 'profesional', label: 'Empresa en crecimiento · necesito análisis competitivo' },
+  { value: 'enterprise', label: 'Empresa mediana o grande · necesito inteligencia completa' },
   { value: 'no-se', label: 'No estoy seguro · quiero explorar' },
 ] as const
 
@@ -62,7 +63,8 @@ function validateEmail(value: string): boolean {
 export function RegistroForm() {
   const router = useRouter()
   const params = useSearchParams()
-  const intent = params.get('plan') === 'chica' ? 'chica' : 'grande'
+  const planParam = params.get('plan')
+  const intent = planParam === 'pyme' ? 'pyme' : planParam === 'profesional' ? 'profesional' : 'enterprise'
 
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -73,7 +75,7 @@ export function RegistroForm() {
   const [company, setCompany] = useState('')
   const [phone, setPhone] = useState('')
   const [industry, setIndustry] = useState<typeof INDUSTRIES[number]['value']>('mitilicultura')
-  const [size, setSize] = useState<typeof COMPANY_SIZES[number]['value']>(intent === 'chica' ? 'chica' : 'grande')
+  const [size, setSize] = useState<typeof COMPANY_SIZES[number]['value']>(intent)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   function validate(): FieldErrors {
@@ -97,7 +99,7 @@ export function RegistroForm() {
     // In production this would call the signup API. For now we simulate the
     // round-trip and persist locally so the platform recognises the user.
     await new Promise((r) => setTimeout(r, 600))
-    const planHint: Plan = size === 'chica' ? 'chica' : 'grande'
+    const planHint: Plan = size === 'pyme' ? 'pyme' : size === 'profesional' ? 'profesional' : 'enterprise'
     persistTrial(planHint, { name, email, company, phone, industry, size })
     router.push('/registro/confirmacion')
   }

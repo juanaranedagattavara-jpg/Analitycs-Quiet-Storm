@@ -7,7 +7,8 @@ import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
 import { getRealReport, type RealReport } from '@/lib/real-reports'
 import { formatMonthYear } from '@/lib/export-utils'
-import type { Report, ReportType } from '@/lib/types'
+import type { Report, ReportType, Plan } from '@/lib/types'
+import { PLAN_LABELS } from '@/lib/types'
 
 function TypeBadge({ type }: { type: ReportType }) {
   const config: Record<ReportType, { label: string; className: string }> = {
@@ -31,9 +32,11 @@ const INDUSTRY_LABELS: Record<string, string> = {
   general: 'General',
 }
 
-function canAccessReport(reportPlan: Report['plan'], userPlan: 'grande' | 'chica'): boolean {
+function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
   if (reportPlan === 'ambos') return true
-  return reportPlan === userPlan
+  if (userPlan === 'enterprise') return true
+  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
+  return reportPlan === 'pyme'
 }
 
 function ReportFileViewer({ report }: { report: RealReport }) {
@@ -187,16 +190,16 @@ export default function ReportViewerPage() {
             </svg>
           </div>
           <h2 className="font-display text-xl font-semibold text-storm-midnight mb-2">
-            Informe exclusivo Plan Grande
+            Informe exclusivo de plan superior
           </h2>
           <p className="text-sm text-storm-mist mb-2 leading-relaxed">
             {report.title}
           </p>
           <p className="text-xs text-storm-fog mb-6">
-            Este informe está disponible únicamente con el plan Empresa Grande.
+            Este informe requiere el plan {report.plan === 'enterprise' ? PLAN_LABELS.enterprise : PLAN_LABELS.profesional}.
           </p>
           <button className="btn-lightning rounded-xl h-11 px-8 text-sm font-semibold inline-flex items-center gap-2">
-            Mejorar a Plan Grande
+            Mejorar mi plan
           </button>
         </div>
       </div>

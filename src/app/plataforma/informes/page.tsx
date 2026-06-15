@@ -6,7 +6,8 @@ import { cn } from '@/lib/cn'
 import { usePlan } from '@/lib/plan-context'
 import { getRealReports } from '@/lib/real-reports'
 import { formatMonthYear } from '@/lib/export-utils'
-import type { Report, ReportType, Industry } from '@/lib/types'
+import type { Report, ReportType, Industry, Plan } from '@/lib/types'
+import { PLAN_LABELS } from '@/lib/types'
 
 const INDUSTRY_OPTIONS: { value: string; label: string }[] = [
   { value: 'todas', label: 'Todas las industrias' },
@@ -71,8 +72,9 @@ function ReportTypeIcon({ type }: { type: ReportType }) {
 
 function PlanBadge({ plan }: { plan: Report['plan'] }) {
   const config = {
-    grande: { label: 'Empresa Grande', className: 'bg-blue-50 text-blue-700' },
-    chica: { label: 'PYME', className: 'bg-green-50 text-green-700' },
+    enterprise: { label: PLAN_LABELS.enterprise, className: 'bg-blue-50 text-blue-700' },
+    profesional: { label: PLAN_LABELS.profesional, className: 'bg-purple-50 text-purple-700' },
+    pyme: { label: PLAN_LABELS.pyme, className: 'bg-green-50 text-green-700' },
     ambos: { label: 'Todos', className: 'bg-storm-paper text-storm-steel' },
   }
   const { label, className } = config[plan]
@@ -93,9 +95,11 @@ function IndustryLabel({ industry }: { industry: Industry }) {
   return <span className="text-xs text-storm-mist">{labels[industry]}</span>
 }
 
-function canAccessReport(reportPlan: Report['plan'], userPlan: 'grande' | 'chica'): boolean {
+function canAccessReport(reportPlan: Report['plan'], userPlan: Plan): boolean {
   if (reportPlan === 'ambos') return true
-  return reportPlan === userPlan
+  if (userPlan === 'enterprise') return true
+  if (userPlan === 'profesional') return reportPlan !== 'enterprise'
+  return reportPlan === 'pyme'
 }
 
 function UpgradeBanner() {
@@ -112,7 +116,7 @@ function UpgradeBanner() {
             </h3>
           </div>
           <p className="text-xs text-storm-spray">
-            Con Plan Grande obtienes acceso completo a rankings, análisis competitivo y datos detallados por empresa.
+            Con Plan Enterprise obtienes acceso completo a rankings, análisis competitivo y datos detallados por empresa.
           </p>
         </div>
         <button className="btn-lightning rounded-lg h-9 px-5 text-xs font-semibold whitespace-nowrap flex-shrink-0">
@@ -142,7 +146,7 @@ export default function InformesPage() {
   }, [allReports, plan, selectedIndustry, selectedType])
 
   const lockedCount = useMemo(() => {
-    if (plan === 'grande') return 0
+    if (plan === 'enterprise') return 0
     return allReports.filter((r) => !canAccessReport(r.plan, plan)).length
   }, [allReports, plan])
 
@@ -165,7 +169,7 @@ export default function InformesPage() {
         </p>
       </div>
 
-      {plan === 'chica' && lockedCount > 0 && <UpgradeBanner />}
+      {plan === 'pyme' && lockedCount > 0 && <UpgradeBanner />}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <select
@@ -193,8 +197,8 @@ export default function InformesPage() {
 
       <p className="text-sm text-storm-mist">
         {filteredReports.length} {filteredReports.length === 1 ? 'informe encontrado' : 'informes encontrados'}
-        {plan === 'chica' && lockedCount > 0 && (
-          <span className="text-storm-fog"> ({lockedCount} informes adicionales disponibles en Plan Grande)</span>
+        {plan === 'pyme' && lockedCount > 0 && (
+          <span className="text-storm-fog"> ({lockedCount} informes adicionales disponibles en Plan Enterprise)</span>
         )}
       </p>
 

@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { PlanProvider, usePlan } from '@/lib/plan-context'
 import { profileStore } from '@/lib/profile-store'
+import { PLAN_SHORT_LABELS, PLAN_PRICING } from '@/lib/types'
+import type { Plan } from '@/lib/types'
 
 const navItems = [
   {
@@ -53,12 +55,13 @@ const navItems = [
   },
 ]
 
+const PLAN_REPORTS: Record<Plan, number> = { pyme: 4, profesional: 6, enterprise: 10 }
+
 function PlanSwitcher() {
   const { plan, cycle, setPlan, isTrial } = usePlan()
-  const price = plan === 'chica'
-    ? (cycle === 'mensual' ? '1 UF/mes' : '10 UF/año')
-    : (cycle === 'mensual' ? '7 UF/mes' : '70 UF/año')
-  const reports = plan === 'grande' ? 7 : 4
+  const pricing = PLAN_PRICING[plan]
+  const price = cycle === 'mensual' ? `${pricing.mensual} UF/mes` : `${pricing.anual} UF/año`
+  const reports = PLAN_REPORTS[plan]
 
   return (
     <div className="px-3 py-3">
@@ -66,28 +69,20 @@ function PlanSwitcher() {
         Plan activo
       </p>
       <div className="flex rounded-lg bg-storm-deep p-1 gap-1">
-        <button
-          onClick={() => setPlan('chica')}
-          className={cn(
-            'flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all duration-200',
-            plan === 'chica'
-              ? 'bg-lightning text-storm-midnight shadow-sm'
-              : 'text-storm-fog hover:text-storm-spray'
-          )}
-        >
-          Empresa Chica
-        </button>
-        <button
-          onClick={() => setPlan('grande')}
-          className={cn(
-            'flex-1 px-3 py-2 rounded-md text-xs font-semibold transition-all duration-200',
-            plan === 'grande'
-              ? 'bg-lightning text-storm-midnight shadow-sm'
-              : 'text-storm-fog hover:text-storm-spray'
-          )}
-        >
-          Empresa Grande
-        </button>
+        {(['pyme', 'profesional', 'enterprise'] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPlan(p)}
+            className={cn(
+              'flex-1 px-2 py-2 rounded-md text-xs font-semibold transition-all duration-200',
+              plan === p
+                ? 'bg-lightning text-storm-midnight shadow-sm'
+                : 'text-storm-fog hover:text-storm-spray'
+            )}
+          >
+            {PLAN_SHORT_LABELS[p]}
+          </button>
+        ))}
       </div>
       <div className="mt-2 px-3">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-storm-spray">

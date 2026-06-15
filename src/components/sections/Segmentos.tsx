@@ -10,27 +10,35 @@ export function Segmentos() {
             Propuesta de valor
           </p>
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight">
-            Dos necesidades. Dos planes.
+            Tres necesidades. Tres planes.
           </h2>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           <SegmentCard
-            tag="Empresa grande"
-            quote='"Quiero compararme contra mi competencia."'
-            body="Precios, volúmenes, participación de mercado, calibres. Todo cruzado por empresa y destino. Para presentar a directorio, tomar decisiones estratégicas y anticipar movimientos."
-            plan="Plan Empresa Grande"
-            price="60–80 UF / año"
-            href="/precios#plan-grande"
+            tag="Pymes y MicroPymes"
+            quote='"Necesito datos de precios para fijar los míos."'
+            body="Empieza temporada y necesitas saber a cuánto se ha vendido históricamente tu producto en cada mercado. Price Check y tendencias para definir tu precio con respaldo."
+            plan="Plan Pyme"
+            price="1 UF / mes"
+            href="/precios#plan-pyme"
+          />
+          <SegmentCard
+            tag="En crecimiento"
+            quote='"Quiero entender mi posición competitiva."'
+            body="Análisis competitivo, outliers y landscape completo. Para empresas en crecimiento que necesitan posicionarse estratégicamente en sus mercados de destino."
+            plan="Plan Profesional"
+            price="3 UF / mes"
+            href="/precios#plan-profesional"
             featured
           />
           <SegmentCard
-            tag="Empresa chica"
-            quote='"Necesito datos de precios para fijar los míos."'
-            body="Empieza temporada, necesitas saber a cuánto se ha vendido históricamente tu producto en cada mercado. Price Check y tendencias para definir tu precio con respaldo."
-            plan="Plan Empresa Chica"
-            price="0,5–1 UF / mes"
-            href="/precios#plan-chica"
+            tag="Medianas y Grandes"
+            quote='"Quiero compararme contra mi competencia."'
+            body="Precios, volúmenes, participación de mercado, calibres. Todo cruzado por empresa y destino. Para presentar a directorio y anticipar movimientos del mercado."
+            plan="Plan Enterprise"
+            price="7 UF / mes"
+            href="/precios#plan-enterprise"
           />
         </div>
       </Container>

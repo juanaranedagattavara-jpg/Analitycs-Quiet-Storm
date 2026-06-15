@@ -1,6 +1,18 @@
-export type Plan = 'chica' | 'grande'
+export type Plan = 'pyme' | 'profesional' | 'enterprise'
 export type BillingCycle = 'mensual' | 'anual'
 export type SubscriptionStatus = 'trial' | 'active' | 'cancelled' | 'past_due'
+
+export const PLAN_LABELS: Record<Plan, string> = {
+  pyme: 'Pymes y MicroPymes',
+  profesional: 'Profesional',
+  enterprise: 'Empresas Medianas y Grandes',
+}
+
+export const PLAN_SHORT_LABELS: Record<Plan, string> = {
+  pyme: 'Pyme',
+  profesional: 'Profesional',
+  enterprise: 'Enterprise',
+}
 
 export interface PlanPricing {
   mensual: number // UF/mes
@@ -8,22 +20,21 @@ export interface PlanPricing {
 }
 
 export const PLAN_PRICING: Record<Plan, PlanPricing> = {
-  chica: { mensual: 1, anual: 10 },
-  grande: { mensual: 7, anual: 70 },
+  pyme: { mensual: 1, anual: 10 },
+  profesional: { mensual: 3, anual: 30 },
+  enterprise: { mensual: 7, anual: 70 },
 }
 
 export function getEffectivePrice(plan: Plan, cycle: BillingCycle): number {
   return PLAN_PRICING[plan][cycle]
 }
 
-/** Monthly-equivalent price for a yearly subscription, used for comparison */
 export function getMonthlyEquivalent(plan: Plan, cycle: BillingCycle): number {
   const p = PLAN_PRICING[plan]
   if (cycle === 'anual') return +(p.anual / 12).toFixed(2)
   return p.mensual
 }
 
-/** How much UF the user saves per year by choosing anual over mensual */
 export function getYearlyDiscount(plan: Plan): number {
   const p = PLAN_PRICING[plan]
   return +(p.mensual * 12 - p.anual).toFixed(1)
@@ -33,9 +44,9 @@ export interface Subscription {
   plan: Plan
   cycle: BillingCycle
   status: SubscriptionStatus
-  startedAt: string // ISO date
-  renewsAt: string  // ISO date (trial-end or next billing)
-  cancelAt?: string // ISO date if cancelled (still active until this date)
+  startedAt: string
+  renewsAt: string
+  cancelAt?: string
 }
 
 export interface UserProfile {
@@ -50,7 +61,7 @@ export interface UserProfile {
 export interface Invoice {
   id: string
   number: string
-  date: string // ISO
+  date: string
   amountUF: number
   amountCLP: number
   status: 'paid' | 'pending' | 'failed'
@@ -63,7 +74,7 @@ export interface PaymentMethod {
   type: 'card' | 'transfer'
   last4?: string
   brand?: 'visa' | 'mastercard' | 'amex'
-  expiry?: string // MM/YY
+  expiry?: string
   isDefault: boolean
 }
 
@@ -87,34 +98,10 @@ export interface PlanConfig {
 }
 
 export const PLAN_CONFIGS: Record<Plan, PlanConfig> = {
-  grande: {
-    plan: 'grande',
-    nombre: 'Plan Grande',
-    descripcion: 'Acceso completo a rankings, calibres, analisis competitivo y todos los informes',
-    features: {
-      rankingEmpresas: true,
-      desgloseCalibre: true,
-      analisisCompetitivo: true,
-      analisisDestino: true,
-      datosEmpresaEspecifica: true,
-      historicosCompletos: true,
-      exportExcel: true,
-      reportesCantidad: 7,
-    },
-    reportTypes: [
-      'Analisis Estadistico completo',
-      'Producto x Destino x Empresa x Calibres (Excel)',
-      'MUSSEL METRICS Dashboard',
-      'Informe Erizos y Jaibas',
-      'Ranking Empresas Exportadoras',
-      'SEAFARM METRICS Dashboard',
-      'Analisis Competitivo Mensual',
-    ],
-  },
-  chica: {
-    plan: 'chica',
-    nombre: 'Plan Chica',
-    descripcion: 'Price check, tendencias de precios generales y resumen de mercado',
+  pyme: {
+    plan: 'pyme',
+    nombre: 'Pymes y MicroPymes',
+    descripcion: 'Price Check, resumen ejecutivo y base de datos compilada para tomar decisiones de precio rápidas.',
     features: {
       rankingEmpresas: false,
       desgloseCalibre: false,
@@ -126,10 +113,65 @@ export const PLAN_CONFIGS: Record<Plan, PlanConfig> = {
       reportesCantidad: 4,
     },
     reportTypes: [
-      'Mussel Price Check',
-      'Resumen de Precios por Destino',
-      'MOSS METRICS Dashboard',
-      'Tendencias de Mercado',
+      'Price Check',
+      'Resumen Ejecutivo',
+      'Base de Datos Compilada',
+      'Country Index',
+    ],
+  },
+  profesional: {
+    plan: 'profesional',
+    nombre: 'Profesional',
+    descripcion: 'Análisis competitivo, outliers y landscape completo para empresas que necesitan posicionarse estratégicamente.',
+    features: {
+      rankingEmpresas: true,
+      desgloseCalibre: true,
+      analisisCompetitivo: true,
+      analisisDestino: true,
+      datosEmpresaEspecifica: false,
+      historicosCompletos: false,
+      exportExcel: true,
+      reportesCantidad: 6,
+    },
+    reportTypes: [
+      'Price Check',
+      'Resumen Ejecutivo',
+      'Base de Datos Compilada',
+      'Beautiful Soup',
+      'Country Index',
+      'Outliers Analysis',
+      'Competitive Landscape',
+    ],
+  },
+  enterprise: {
+    plan: 'enterprise',
+    nombre: 'Empresas Medianas y Grandes',
+    descripcion: 'Inteligencia competitiva completa: rankings, market share, calibres, flujos de bienes, clusters y análisis de tendencias.',
+    features: {
+      rankingEmpresas: true,
+      desgloseCalibre: true,
+      analisisCompetitivo: true,
+      analisisDestino: true,
+      datosEmpresaEspecifica: true,
+      historicosCompletos: true,
+      exportExcel: true,
+      reportesCantidad: 10,
+    },
+    reportTypes: [
+      'Análisis de Patrones de Mercado',
+      'Posicionamiento',
+      'Ranking de Empresas',
+      'Ranking de Mercados',
+      'Análisis de Mix de Productos',
+      'Market Share Empresas',
+      'Market Share Destinos / Origen',
+      'Análisis de Calibres',
+      'Desempeño Comparado',
+      'Informe de Clientes Extranjeros',
+      'Análisis de Tendencias',
+      'Estructura de Calibres por Empresa / Destino',
+      'Análisis de Flujos de Bienes',
+      'Análisis de Clusters Jerárquicos',
     ],
   },
 }
@@ -148,7 +190,7 @@ export interface Report {
   tags: string[]
   uploadDate: string
   fileSize?: string
-  plan: 'grande' | 'chica' | 'ambos'
+  plan: 'enterprise' | 'pyme' | 'profesional' | 'ambos'
 }
 
 export interface ExportRow {

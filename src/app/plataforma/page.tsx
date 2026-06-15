@@ -44,7 +44,7 @@ function UpgradeBanner() {
               <path d="M10 2l2.5 5.5H18l-4.5 3.5 1.5 6L10 14l-5 3 1.5-6L2 7.5h5.5L10 2z" stroke="#f7c948" strokeWidth="1.5" strokeLinejoin="round" fill="#f7c948" fillOpacity="0.2" />
             </svg>
             <h3 className="font-display text-base font-semibold text-white">
-              Mejora a Plan Grande
+              Mejora a Plan Enterprise
             </h3>
           </div>
           <p className="text-sm text-storm-spray leading-relaxed">
@@ -70,7 +70,7 @@ function LockedOverlay({ title }: { title: string }) {
           </svg>
         </div>
         <p className="font-display text-sm font-semibold text-storm-midnight mb-1">{title}</p>
-        <p className="text-xs text-storm-mist text-center">Disponible en Plan Grande</p>
+        <p className="text-xs text-storm-mist text-center">Disponible en Plan Enterprise</p>
       </div>
       <div className="p-6 opacity-20 pointer-events-none">
         <div className="h-48 bg-storm-paper rounded-xl" />
@@ -99,8 +99,8 @@ export default function DashboardPage() {
     { label: 'Volumen Total', value: formatTons(kpi.totalVolume), unit: 'toneladas' },
     { label: 'Precio Promedio', value: `$${kpi.avgPrice.toFixed(2)}`, unit: 'USD/kg' },
     {
-      label: plan === 'grande' ? 'Empresas Activas' : 'Destino Principal',
-      value: plan === 'grande' ? String(kpi.numCompanies) : kpi.topDestination,
+      label: plan === 'enterprise' ? 'Empresas Activas' : 'Destino Principal',
+      value: plan === 'enterprise' ? String(kpi.numCompanies) : kpi.topDestination,
       unit: '',
     },
   ]
@@ -114,9 +114,9 @@ export default function DashboardPage() {
           </h1>
           <p className="text-sm text-storm-mist mt-1">
             Resumen de exportaciones de mejillón chileno · datos cargados por el cliente
-            {plan === 'chica' && (
+            {plan === 'pyme' && (
               <span className="ml-2 inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-storm-paper text-storm-steel">
-                Plan Empresa Chica
+                Plan Pyme
               </span>
             )}
           </p>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
             Ranking anual 2022 · Tendencia mensual diciembre 2015 – noviembre 2016
           </p>
         </div>
-        {plan === 'grande' && (
+        {plan === 'enterprise' && (
           <button
             onClick={handleExportExcel}
             className="h-10 px-5 rounded-lg bg-storm-midnight text-white text-sm font-medium hover:bg-storm-deep transition-colors flex items-center gap-2 self-start"
@@ -163,7 +163,7 @@ export default function DashboardPage() {
         <VolumeTrendChart data={priceTrend} />
       </div>
 
-      {plan === 'chica' && (
+      {plan === 'pyme' && (
         <>
           <UpgradeBanner />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -173,7 +173,7 @@ export default function DashboardPage() {
         </>
       )}
 
-      {plan === 'grande' && (
+      {plan === 'enterprise' && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl p-6 border border-storm-foam">

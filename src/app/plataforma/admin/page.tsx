@@ -42,9 +42,10 @@ const INDUSTRY_OPTIONS: { value: Industry; label: string }[] = [
 ]
 
 const PLAN_OPTIONS = [
-  { value: 'grande', label: 'Empresa Grande' },
-  { value: 'chica', label: 'Empresa Chica (PYME)' },
-  { value: 'ambos', label: 'Ambos planes' },
+  { value: 'enterprise', label: 'Empresas Medianas y Grandes' },
+  { value: 'profesional', label: 'Profesional' },
+  { value: 'pyme', label: 'Pymes y MicroPymes' },
+  { value: 'ambos', label: 'Todos los planes' },
 ]
 
 const reportTypeLabels: Record<string, string> = {
@@ -75,9 +76,10 @@ const statusBadge: Record<string, { label: string; className: string }> = {
 }
 
 const planBadgeConfig: Record<string, { label: string; className: string }> = {
-  grande: { label: 'Grande', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  chica: { label: 'Chica', className: 'bg-green-50 text-green-700 border-green-200' },
-  ambos: { label: 'Ambos', className: 'bg-storm-paper text-storm-steel border-storm-foam' },
+  enterprise: { label: 'Enterprise', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  profesional: { label: 'Profesional', className: 'bg-purple-50 text-purple-700 border-purple-200' },
+  pyme: { label: 'Pyme', className: 'bg-green-50 text-green-700 border-green-200' },
+  ambos: { label: 'Todos', className: 'bg-storm-paper text-storm-steel border-storm-foam' },
 }
 
 const ACCEPTED_TYPES = '.pdf,.xlsx,.xls,.html,.csv'
@@ -153,10 +155,11 @@ export default function AdminPage() {
     const thisMonth = allReports.filter(
       (r) => r.month === now.getMonth() + 1 && r.year === now.getFullYear()
     ).length
-    const grandeOnly = allReports.filter((r) => r.plan === 'grande').length
-    const chicaOnly = allReports.filter((r) => r.plan === 'chica').length
+    const enterpriseOnly = allReports.filter((r) => r.plan === 'enterprise').length
+    const profesionalOnly = allReports.filter((r) => r.plan === 'profesional').length
+    const pymeOnly = allReports.filter((r) => r.plan === 'pyme').length
     const ambos = allReports.filter((r) => r.plan === 'ambos').length
-    return { total, thisMonth, grandeOnly, chicaOnly, ambos }
+    return { total, thisMonth, enterpriseOnly, profesionalOnly, pymeOnly, ambos }
   }, [allReports])
 
   // Toast auto-dismiss
@@ -302,8 +305,8 @@ export default function AdminPage() {
           }
         />
         <StatCard
-          label="Plan Grande"
-          value={String(stats.grandeOnly)}
+          label="Plan Enterprise"
+          value={String(stats.enterpriseOnly)}
           icon={
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M10 2l2.5 5.5H18l-4.5 3.5 1.5 6L10 14l-5 3 1.5-6L2 7.5h5.5L10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -311,8 +314,8 @@ export default function AdminPage() {
           }
         />
         <StatCard
-          label="Plan Chica"
-          value={String(stats.chicaOnly)}
+          label="Plan Pyme"
+          value={String(stats.pymeOnly)}
           icon={
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
@@ -321,7 +324,7 @@ export default function AdminPage() {
           }
         />
         <StatCard
-          label="Ambos planes"
+          label="Todos los planes"
           value={String(stats.ambos)}
           icon={
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

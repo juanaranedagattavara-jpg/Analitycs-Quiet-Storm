@@ -13,7 +13,7 @@ export function PricingTeaser() {
             Pricing transparente en UF.
           </h2>
           <p className="mt-5 text-lg text-storm-steel">
-            Todos los planes incluyen acceso a la plataforma web.{" "}
+            Tres planes adaptados al tamaño de tu empresa.{" "}
             <span className="text-storm-midnight font-medium">
               Prueba gratuita de 1 mes
             </span>{" "}
@@ -21,32 +21,47 @@ export function PricingTeaser() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           <PlanCard
-            name="Plan Empresa Grande"
-            price="60–80"
-            cadence="UF / año"
-            body="Análisis competitivo, participación de mercado, desglose por calibre, dashboards interactivos y reportes PDF personalizados (4-5 por cliente)."
+            name="Pymes y MicroPymes"
+            price="1"
+            cadence="UF / mes"
+            body="Price Check, Resumen Ejecutivo y Base de Datos Compilada. Para empresas que necesitan datos de precios para fijar los suyos."
             features={[
               "Acceso plataforma web",
-              "Dashboards interactivos (3)",
-              "Reportes PDF personalizados",
-              "Archivos Excel detallados",
-              "Price Check incluido",
-              "Múltiples reportes por período",
+              "Price Check",
+              "Resumen Ejecutivo",
+              "Base de Datos Compilada",
+              "Country Index",
             ]}
           />
           <PlanCard
-            name="Plan Empresa Chica"
-            price="0,5–1"
+            name="Profesional"
+            price="3"
             cadence="UF / mes"
-            body="Datos de precios, tendencias de mercado y reportes Price Check. Para empresas que necesitan información para tomar decisiones de temporada."
+            body="Análisis competitivo, Outliers y Competitive Landscape. Para empresas en crecimiento que necesitan posicionamiento estratégico."
             features={[
-              "Acceso plataforma web",
-              "Datos de precios de mercado",
-              "Tendencias de mercado",
-              "Reportes Price Check",
-              "Precios históricos por temporada",
+              "Todo lo del plan Pyme",
+              "Análisis competitivo",
+              "Outliers Analysis",
+              "Competitive Landscape",
+              "Análisis de Calibres",
+              "Excel detallados",
+            ]}
+            featured
+          />
+          <PlanCard
+            name="Empresas Medianas y Grandes"
+            price="7"
+            cadence="UF / mes"
+            body="Inteligencia competitiva completa: rankings, market share, calibres, flujos de bienes y clusters jerárquicos."
+            features={[
+              "Todo lo del plan Profesional",
+              "Ranking de Empresas y Mercados",
+              "Market Share completo",
+              "Análisis de Tendencias",
+              "Flujos de Bienes",
+              "Clusters Jerárquicos",
             ]}
           />
         </div>
@@ -60,7 +75,7 @@ export function PricingTeaser() {
           </Link>
           <span className="hidden sm:inline text-storm-mist">·</span>
           <Link
-            href="/demo?intent=trial"
+            href="/registro"
             className="btn-lightning rounded-full h-12 px-7 inline-flex items-center font-semibold"
           >
             Empieza tu prueba gratis
@@ -77,40 +92,87 @@ function PlanCard({
   cadence,
   body,
   features,
+  featured,
 }: {
   name: string;
   price: string;
   cadence: string;
   body: string;
   features: string[];
+  featured?: boolean;
 }) {
   return (
-    <div className="card-lift rounded-2xl border border-storm-foam bg-storm-paper p-8 lg:p-10">
-      <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-storm-mist">
+    <div
+      className={
+        "card-lift rounded-2xl border p-8 lg:p-10 relative " +
+        (featured
+          ? "bg-storm-midnight text-white border-lightning"
+          : "border-storm-foam bg-storm-paper")
+      }
+    >
+      {featured && (
+        <div className="absolute -top-3 left-8 px-3 py-1 rounded-full bg-lightning text-storm-midnight font-mono text-[10px] uppercase tracking-wider font-bold">
+          Mejor valor
+        </div>
+      )}
+      <div
+        className={
+          "font-mono text-[10px] uppercase tracking-[0.18em] " +
+          (featured ? "text-lightning" : "text-storm-mist")
+        }
+      >
         {name}
       </div>
       <div className="mt-4 flex items-baseline gap-2">
-        <span className="font-display text-6xl lg:text-7xl font-medium text-storm-midnight">
+        <span
+          className={
+            "font-display text-6xl lg:text-7xl font-medium " +
+            (featured ? "text-white" : "text-storm-midnight")
+          }
+        >
           {price}
         </span>
-        <span className="font-mono text-sm text-storm-steel">{cadence}</span>
+        <span
+          className={
+            "font-mono text-sm " +
+            (featured ? "text-storm-spray" : "text-storm-steel")
+          }
+        >
+          {cadence}
+        </span>
       </div>
-      <p className="mt-5 text-[15px] text-storm-steel leading-relaxed">{body}</p>
+      <p
+        className={
+          "mt-5 text-[15px] leading-relaxed " +
+          (featured ? "text-storm-spray" : "text-storm-steel")
+        }
+      >
+        {body}
+      </p>
 
       <ul className="mt-8 space-y-3">
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-3 text-sm text-storm-steel">
+          <li
+            key={f}
+            className={
+              "flex items-start gap-3 text-sm " +
+              (featured ? "text-storm-spray" : "text-storm-steel")
+            }
+          >
             <svg
               width="18"
               height="18"
               viewBox="0 0 18 18"
               fill="none"
-              className="text-lightning flex-shrink-0 mt-0.5"
+              className={
+                "flex-shrink-0 mt-0.5 " +
+                (featured ? "text-lightning" : "text-storm-midnight")
+              }
             >
               <circle cx="9" cy="9" r="9" fill="currentColor" opacity="0.2" />
               <path
                 d="M5.5 9.5l2.5 2.5L13 7"
-                stroke="#0a1f33"
+                stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
