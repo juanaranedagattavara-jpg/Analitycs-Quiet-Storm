@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getDb } from './client'
+import { getDb, ensureDb } from './client'
 import type { SessionRow } from './types'
 
 export interface CreateSessionInput {
@@ -9,15 +9,14 @@ export interface CreateSessionInput {
   ip?: string | null
 }
 
-export function createSession(input: CreateSessionInput): SessionRow {
-  const db = getDb()
+export async function createSession(input: CreateSessionInput): Promise<SessionRow> {
+  await ensureDb()
+  const sql = getDb()
   const id = randomUUID()
   const now = new Date().toISOString()
 
-  db.prepare(
-    `INSERT INTO sessions (id, user_id, expires_at, user_agent, ip, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(id, input.userId, input.expiresAt, input.userAgent ?? null, input.ip ?? null, now)
+  await sql`INSERT INTO sessions (id, user_id, expires_at, user_agent, ip, created_at)
+     VALUES (${id}, ${input.userId}, ${input.expiresAt}, ${input.userAgent ?? null}, ${input.ip ?? null}, ${now})`
 
   return {
     id,
@@ -29,32 +28,34 @@ export function createSession(input: CreateSessionInput): SessionRow {
   }
 }
 
-export function findSessionById(id: string): SessionRow | null {
-  const db = getDb()
-  const row = db.prepare('SELECT * FROM sessions WHERE id = ? LIMIT 1').get(id) as
-    | SessionRow
-    | undefined
-  return row ?? null
+export async function findSessionById(id: string): Promise<SessionRow | null> {
+  await ensureDb()
+  const sql = getDb()
+  const rows = await sql`SELECT * FROM sessions WHERE id = ${id} LIMIT 1`
+  return (rows[0] as SessionRow) ?? null
 }
 
-export function deleteSession(id: string): void {
-  const db = getDb()
-  db.prepare('DELETE FROM sessions WHERE id = ?').run(id)
+export async function deleteSession(id: string): Promise<void> {
+  await ensureDb()
+  const sql = getDb()
+  await sql`DELETE FROM sessions WHERE id = ${id}`
 }
 
-export function deleteSessionsByUser(userId: string): void {
-  const db = getDb()
-  db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId)
+export async function deleteSessionsByUser(userId: string): Promise<void> {
+  await ensureDb()
+  const sql = getDb()
+  await sql`DELETE FROM sessions WHERE user_id = ${userId}`
 }
 
-export function cleanExpiredSessions(): void {
-  const db = getDb()
-  db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(new Date().toISOString())
+export async function cleanExpiredSessions(): Promise<void> {
+  await ensureDb()
+  const sql = getDb()
+  const now = new Date().toISOString()
+  await sql`DELETE FROM sessions WHERE expires_at < ${now}`
 }
 
-export function listUserSessions(userId: string): SessionRow[] {
-  const db = getDb()
-  return db
-    .prepare('SELECT * FROM sessions WHERE user_id = ? ORDER BY created_at DESC')
-    .all(userId) as SessionRow[]
+export async function listUserSessions(userId: string): Promise<SessionRow[]> {
+  await ensureDb()
+  const sql = getDb()
+  return (await sql`SELECT * FROM sessions WHERE user_id = ${userId} ORDER BY created_at DESC`) as SessionRow[]
 }

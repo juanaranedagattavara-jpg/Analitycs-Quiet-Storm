@@ -27,13 +27,13 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   try {
     const me = await requireAdmin()
     const { id } = await ctx.params
-    const existing = findReportById(id)
+    const existing = await findReportById(id)
     if (!existing) throw new HttpError(404, 'Informe no encontrado')
 
     const data = patchSchema.parse(await req.json().catch(() => ({})))
-    const updated = updateReport(id, data)
+    const updated = await updateReport(id, data)
 
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'admin.report.update',
       entity: 'report',
@@ -52,13 +52,13 @@ export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: stri
   try {
     const me = await requireAdmin()
     const { id } = await ctx.params
-    const existing = findReportById(id)
+    const existing = await findReportById(id)
     if (!existing) throw new HttpError(404, 'Informe no encontrado')
 
     if (existing.file_path) await deleteReportFile(existing.file_path)
-    deleteReportRow(id)
+    await deleteReportRow(id)
 
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'admin.report.delete',
       entity: 'report',

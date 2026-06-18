@@ -5,7 +5,7 @@ import { jsonOk, handleError } from '@/lib/api/respond'
 export async function GET() {
   try {
     const me = await requireUser()
-    const invoices = listInvoicesByUser(me.user.id)
+    const invoices = await listInvoicesByUser(me.user.id)
     return jsonOk({ invoices })
   } catch (err) {
     return handleError(err)

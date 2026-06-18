@@ -11,7 +11,7 @@ import type { Industry, ReportType } from '@/lib/types'
 export async function GET() {
   try {
     await requireAdmin()
-    const rows = listReports()
+    const rows = await listReports()
     return jsonOk({ reports: rows.map(serializeReport) })
   } catch (err) {
     return handleError(err)
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       fileSize = saved.size
     }
 
-    const report = createReport({
+    const report = await createReport({
       title: meta.title,
       description: meta.description,
       type: meta.type as ReportType,
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       createdBy: me.user.id,
     })
 
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'admin.report.create',
       entity: 'report',

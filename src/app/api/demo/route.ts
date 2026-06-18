@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}))
     const data = schema.parse(body)
-    const lead = createLead({
+    const lead = await createLead({
       name: data.nombre,
       email: data.email,
       company: data.empresa,
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       source: 'demo',
     })
 
-    logAudit({
+    await logAudit({
       action: 'lead.create',
       entity: 'lead',
       entityId: lead.id,

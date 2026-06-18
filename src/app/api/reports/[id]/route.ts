@@ -8,7 +8,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     const me = await requireUser()
     const { id } = await ctx.params
-    const row = findReportById(id)
+    const row = await findReportById(id)
     if (!row) throw new HttpError(404, 'Informe no encontrado')
     if (row.status !== 'published' && me.user.role !== 'admin') {
       throw new HttpError(404, 'Informe no encontrado')

@@ -16,15 +16,15 @@ async function resolveFromSession(
 ): Promise<CurrentUser | null> {
   if (!payload) return null
 
-  const session = findSessionById(payload.sid)
+  const session = await findSessionById(payload.sid)
   if (!session) return null
 
   if (new Date(session.expires_at).getTime() < Date.now()) return null
 
-  const user = findUserById(payload.uid)
+  const user = await findUserById(payload.uid)
   if (!user) return null
 
-  const subscription = findSubscriptionByUserId(user.id)
+  const subscription = await findSubscriptionByUserId(user.id)
   if (!subscription) return null
 
   return {

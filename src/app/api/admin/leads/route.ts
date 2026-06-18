@@ -5,7 +5,7 @@ import { jsonOk, handleError } from '@/lib/api/respond'
 export async function GET() {
   try {
     await requireAdmin()
-    return jsonOk({ leads: listLeads() })
+    return jsonOk({ leads: await listLeads() })
   } catch (err) {
     return handleError(err)
   }

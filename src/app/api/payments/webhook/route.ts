@@ -43,29 +43,29 @@ export async function POST(req: NextRequest) {
 
     if (!refData.invoiceId) return jsonOk({ ok: true, missingRef: true })
 
-    const invoice = findInvoiceById(refData.invoiceId)
+    const invoice = await findInvoiceById(refData.invoiceId)
     if (!invoice) return jsonOk({ ok: true, missingInvoice: true })
 
     if (payment.status === 'approved' && invoice.status !== 'paid') {
-      markInvoicePaid(invoice.id, String(payment.id))
-      const subscription = findSubscriptionByUserId(invoice.user_id)
+      await markInvoicePaid(invoice.id, String(payment.id))
+      const subscription = await findSubscriptionByUserId(invoice.user_id)
       if (subscription) {
         const renewsAt = addDaysISO(invoice.cycle === 'anual' ? 365 : 30)
-        updateSubscription(invoice.user_id, {
+        await updateSubscription(invoice.user_id, {
           plan: invoice.plan,
           cycle: invoice.cycle,
           status: 'active',
           renewsAt,
         })
       }
-      logAudit({
+      await logAudit({
         userId: invoice.user_id,
         action: 'payment.approved',
         entity: 'invoice',
         entityId: invoice.id,
         metadata: { paymentId: payment.id, amount: payment.transaction_amount },
       })
-      const user = findUserById(invoice.user_id)
+      const user = await findUserById(invoice.user_id)
       if (user) {
         getEmailService()
           .send({

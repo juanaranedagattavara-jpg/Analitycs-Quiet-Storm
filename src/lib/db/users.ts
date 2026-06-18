@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getDb } from './client'
+import { getDb, ensureDb } from './client'
 import type { UserRow, UserRole } from './types'
 
 export interface CreateUserInput {
@@ -13,46 +13,31 @@ export interface CreateUserInput {
   role?: UserRole
 }
 
-export function findUserByEmail(email: string): UserRow | null {
-  const db = getDb()
-  const row = db
-    .prepare('SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1')
-    .get(email) as UserRow | undefined
-  return row ?? null
+export async function findUserByEmail(email: string): Promise<UserRow | null> {
+  await ensureDb()
+  const sql = getDb()
+  const rows = await sql`SELECT * FROM users WHERE lower(email) = lower(${email}) LIMIT 1`
+  return (rows[0] as UserRow) ?? null
 }
 
-export function findUserById(id: string): UserRow | null {
-  const db = getDb()
-  const row = db
-    .prepare('SELECT * FROM users WHERE id = ? LIMIT 1')
-    .get(id) as UserRow | undefined
-  return row ?? null
+export async function findUserById(id: string): Promise<UserRow | null> {
+  await ensureDb()
+  const sql = getDb()
+  const rows = await sql`SELECT * FROM users WHERE id = ${id} LIMIT 1`
+  return (rows[0] as UserRow) ?? null
 }
 
-export function createUser(input: CreateUserInput): UserRow {
-  const db = getDb()
+export async function createUser(input: CreateUserInput): Promise<UserRow> {
+  await ensureDb()
+  const sql = getDb()
   const now = new Date().toISOString()
   const id = randomUUID()
   const role: UserRole = input.role ?? 'user'
 
-  db.prepare(
-    `INSERT INTO users (id, email, password_hash, name, company, phone, industry, size, role, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    id,
-    input.email.toLowerCase().trim(),
-    input.passwordHash,
-    input.name.trim(),
-    input.company.trim(),
-    input.phone?.trim() || null,
-    input.industry,
-    input.size,
-    role,
-    now,
-    now,
-  )
+  await sql`INSERT INTO users (id, email, password_hash, name, company, phone, industry, size, role, created_at, updated_at)
+     VALUES (${id}, ${input.email.toLowerCase().trim()}, ${input.passwordHash}, ${input.name.trim()}, ${input.company.trim()}, ${input.phone?.trim() || null}, ${input.industry}, ${input.size}, ${role}, ${now}, ${now})`
 
-  return findUserById(id)!
+  return (await findUserById(id))!
 }
 
 export interface UpdateUserProfile {
@@ -64,62 +49,63 @@ export interface UpdateUserProfile {
   size?: string
 }
 
-export function updateUser(id: string, patch: UpdateUserProfile): UserRow | null {
-  const db = getDb()
+export async function updateUser(id: string, patch: UpdateUserProfile): Promise<UserRow | null> {
+  await ensureDb()
+  const sql = getDb()
   const fields: string[] = []
-  const values: unknown[] = []
+  const params: unknown[] = []
+  let idx = 1
 
   if (patch.name !== undefined) {
-    fields.push('name = ?')
-    values.push(patch.name.trim())
+    fields.push(`name = $${idx++}`)
+    params.push(patch.name.trim())
   }
   if (patch.company !== undefined) {
-    fields.push('company = ?')
-    values.push(patch.company.trim())
+    fields.push(`company = $${idx++}`)
+    params.push(patch.company.trim())
   }
   if (patch.phone !== undefined) {
-    fields.push('phone = ?')
-    values.push(patch.phone?.trim() || null)
+    fields.push(`phone = $${idx++}`)
+    params.push(patch.phone?.trim() || null)
   }
   if (patch.rut !== undefined) {
-    fields.push('rut = ?')
-    values.push(patch.rut?.trim() || null)
+    fields.push(`rut = $${idx++}`)
+    params.push(patch.rut?.trim() || null)
   }
   if (patch.industry !== undefined) {
-    fields.push('industry = ?')
-    values.push(patch.industry)
+    fields.push(`industry = $${idx++}`)
+    params.push(patch.industry)
   }
   if (patch.size !== undefined) {
-    fields.push('size = ?')
-    values.push(patch.size)
+    fields.push(`size = $${idx++}`)
+    params.push(patch.size)
   }
 
   if (fields.length === 0) return findUserById(id)
 
-  fields.push('updated_at = ?')
-  values.push(new Date().toISOString())
-  values.push(id)
+  fields.push(`updated_at = $${idx++}`)
+  params.push(new Date().toISOString())
+  params.push(id)
 
-  db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+  await sql.query(`UPDATE users SET ${fields.join(', ')} WHERE id = $${idx}`, params)
   return findUserById(id)
 }
 
-export function setUserRole(id: string, role: UserRole): void {
-  const db = getDb()
-  db.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').run(
-    role,
-    new Date().toISOString(),
-    id,
-  )
+export async function setUserRole(id: string, role: UserRole): Promise<void> {
+  await ensureDb()
+  const sql = getDb()
+  await sql`UPDATE users SET role = ${role}, updated_at = ${new Date().toISOString()} WHERE id = ${id}`
 }
 
-export function listUsers(): UserRow[] {
-  const db = getDb()
-  return db.prepare('SELECT * FROM users ORDER BY created_at DESC').all() as UserRow[]
+export async function listUsers(): Promise<UserRow[]> {
+  await ensureDb()
+  const sql = getDb()
+  return (await sql`SELECT * FROM users ORDER BY created_at DESC`) as UserRow[]
 }
 
-export function countUsers(): number {
-  const db = getDb()
-  const r = db.prepare('SELECT COUNT(*) as n FROM users').get() as { n: number }
-  return r.n
+export async function countUsers(): Promise<number> {
+  await ensureDb()
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*) as n FROM users`
+  return Number((rows[0] as { n: string | number }).n)
 }

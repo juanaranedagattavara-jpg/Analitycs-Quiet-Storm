@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getDb } from './client'
+import { getDb, ensureDb } from './client'
 
 export interface AuditLogEntry {
   userId?: string | null
@@ -10,21 +10,11 @@ export interface AuditLogEntry {
   ip?: string | null
 }
 
-export function logAudit(entry: AuditLogEntry): void {
-  const db = getDb()
-  db.prepare(
-    `INSERT INTO audit_log (id, user_id, action, entity, entity_id, metadata, ip, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    randomUUID(),
-    entry.userId ?? null,
-    entry.action,
-    entry.entity ?? null,
-    entry.entityId ?? null,
-    entry.metadata ? JSON.stringify(entry.metadata) : null,
-    entry.ip ?? null,
-    new Date().toISOString(),
-  )
+export async function logAudit(entry: AuditLogEntry): Promise<void> {
+  await ensureDb()
+  const sql = getDb()
+  await sql`INSERT INTO audit_log (id, user_id, action, entity, entity_id, metadata, ip, created_at)
+     VALUES (${randomUUID()}, ${entry.userId ?? null}, ${entry.action}, ${entry.entity ?? null}, ${entry.entityId ?? null}, ${entry.metadata ? JSON.stringify(entry.metadata) : null}, ${entry.ip ?? null}, ${new Date().toISOString()})`
 }
 
 export interface AuditRow {
@@ -38,9 +28,8 @@ export interface AuditRow {
   created_at: string
 }
 
-export function listRecentAudit(limit = 100): AuditRow[] {
-  const db = getDb()
-  return db
-    .prepare('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?')
-    .all(limit) as AuditRow[]
+export async function listRecentAudit(limit = 100): Promise<AuditRow[]> {
+  await ensureDb()
+  const sql = getDb()
+  return (await sql`SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ${limit}`) as AuditRow[]
 }

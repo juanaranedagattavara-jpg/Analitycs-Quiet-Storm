@@ -1,34 +1,32 @@
-import Database, { type Database as DB } from 'better-sqlite3'
-import path from 'node:path'
-import fs from 'node:fs'
-import { SCHEMA_SQL } from './schema'
+import { neon } from '@neondatabase/serverless'
+import { SCHEMA_STATEMENTS } from './schema'
 
-const globalForDb = globalThis as unknown as { __qsa_db?: DB }
-
-function resolveDbPath(): string {
-  const raw = process.env.DATABASE_PATH || './data/qsa.db'
-  return path.isAbsolute(raw) ? raw : path.resolve(process.cwd(), raw)
+export function getDb() {
+  const url = process.env.DATABASE_URL
+  if (!url) throw new Error('DATABASE_URL is not set')
+  return neon(url)
 }
 
-function createConnection(): DB {
-  const file = resolveDbPath()
-  const dir = path.dirname(file)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+let initialized = false
 
-  const db = new Database(file)
-  db.pragma('journal_mode = WAL')
-  db.pragma('foreign_keys = ON')
-  db.exec(SCHEMA_SQL)
-  return db
-}
-
-export function getDb(): DB {
-  if (!globalForDb.__qsa_db) {
-    globalForDb.__qsa_db = createConnection()
-    // Seed real reports on first init. Lazy import to avoid cycles.
-    queueMicrotask(() => {
-      import('./seed').then(({ seedRealReportsIfEmpty }) => seedRealReportsIfEmpty())
-    })
+export async function ensureDb(): Promise<void> {
+  if (initialized) return
+  initialized = true
+  const sql = getDb()
+  for (const stmt of SCHEMA_STATEMENTS) {
+    const s = stmt.trim()
+    if (s && !s.startsWith('--')) {
+      try {
+        await sql.query(s, [])
+      } catch {
+        /* ignore if already exists */
+      }
+    }
   }
-  return globalForDb.__qsa_db
+  try {
+    const { seedRealReportsIfEmpty } = await import('./seed')
+    await seedRealReportsIfEmpty()
+  } catch {
+    /* non-fatal */
+  }
 }
