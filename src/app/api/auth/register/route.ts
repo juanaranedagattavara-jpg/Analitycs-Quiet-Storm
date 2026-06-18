@@ -50,13 +50,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const data = schema.parse(body)
 
-    if (findUserByEmail(data.email)) {
+    if (await findUserByEmail(data.email)) {
       return jsonOk({ error: 'Ya existe una cuenta con ese email' }, { status: 409 })
     }
 
     const passwordHash = await hashPassword(data.password)
     const plan = planFromSize(data.size)
-    const user = createUser({
+    const user = await createUser({
       email: data.email,
       passwordHash,
       name: data.name,
@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
 
     const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
     if (adminEmail && user.email.toLowerCase() === adminEmail) {
-      setUserRole(user.id, 'admin')
+      await setUserRole(user.id, 'admin')
       user.role = 'admin'
     }
 
-    createSubscription({ userId: user.id, plan, trialDays: 30 })
+    await createSubscription({ userId: user.id, plan, trialDays: 30 })
 
     const expiresAt = getSessionExpiresAt()
-    const session = createSession({
+    const session = await createSession({
       userId: user.id,
       expiresAt: expiresAt.toISOString(),
       userAgent: req.headers.get('user-agent') ?? null,
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     )
     await setSessionCookie(token, expiresAt)
 
-    logAudit({
+    await logAudit({
       userId: user.id,
       action: 'user.register',
       entity: 'user',

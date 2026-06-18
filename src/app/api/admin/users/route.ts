@@ -7,10 +7,13 @@ import { jsonOk, handleError } from '@/lib/api/respond'
 export async function GET() {
   try {
     await requireAdmin()
-    const users = listUsers().map((u) => ({
-      ...toPublicUser(u),
-      subscription: findSubscriptionByUserId(u.id),
-    }))
+    const userRows = await listUsers()
+    const users = await Promise.all(
+      userRows.map(async (u) => ({
+        ...toPublicUser(u),
+        subscription: await findSubscriptionByUserId(u.id),
+      }))
+    )
     return jsonOk({ users })
   } catch (err) {
     return handleError(err)

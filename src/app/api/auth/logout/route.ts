@@ -7,8 +7,8 @@ export async function POST() {
   try {
     const session = await readSessionFromCookies()
     if (session) {
-      deleteSession(session.sid)
-      logAudit({ userId: session.uid, action: 'auth.logout' })
+      await deleteSession(session.sid)
+      await logAudit({ userId: session.uid, action: 'auth.logout' })
     }
     await clearSessionCookie()
     return jsonOk({ ok: true })

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getDb } from './client'
+import { getDb, ensureDb } from './client'
 import type { Plan, BillingCycle, SubscriptionStatus } from '@/lib/types'
 import type { SubscriptionRow } from './types'
 
@@ -17,28 +17,26 @@ export interface CreateSubscriptionInput {
   trialDays?: number
 }
 
-export function createSubscription(input: CreateSubscriptionInput): SubscriptionRow {
-  const db = getDb()
+export async function createSubscription(input: CreateSubscriptionInput): Promise<SubscriptionRow> {
+  await ensureDb()
+  const sql = getDb()
   const now = new Date().toISOString()
   const cycle: BillingCycle = input.cycle ?? 'mensual'
   const status: SubscriptionStatus = input.status ?? 'trial'
   const trialDays = input.trialDays ?? 30
   const id = randomUUID()
 
-  db.prepare(
-    `INSERT INTO subscriptions (id, user_id, plan, cycle, status, started_at, renews_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(id, input.userId, input.plan, cycle, status, now, addDays(now, trialDays), now)
+  await sql`INSERT INTO subscriptions (id, user_id, plan, cycle, status, started_at, renews_at, updated_at)
+     VALUES (${id}, ${input.userId}, ${input.plan}, ${cycle}, ${status}, ${now}, ${addDays(now, trialDays)}, ${now})`
 
-  return findSubscriptionByUserId(input.userId)!
+  return (await findSubscriptionByUserId(input.userId))!
 }
 
-export function findSubscriptionByUserId(userId: string): SubscriptionRow | null {
-  const db = getDb()
-  const row = db
-    .prepare('SELECT * FROM subscriptions WHERE user_id = ? LIMIT 1')
-    .get(userId) as SubscriptionRow | undefined
-  return row ?? null
+export async function findSubscriptionByUserId(userId: string): Promise<SubscriptionRow | null> {
+  await ensureDb()
+  const sql = getDb()
+  const rows = await sql`SELECT * FROM subscriptions WHERE user_id = ${userId} LIMIT 1`
+  return (rows[0] as SubscriptionRow) ?? null
 }
 
 export interface UpdateSubscriptionInput {
@@ -51,55 +49,57 @@ export interface UpdateSubscriptionInput {
   mpCustomerId?: string | null
 }
 
-export function updateSubscription(
+export async function updateSubscription(
   userId: string,
   patch: UpdateSubscriptionInput,
-): SubscriptionRow | null {
-  const db = getDb()
+): Promise<SubscriptionRow | null> {
+  await ensureDb()
+  const sql = getDb()
   const fields: string[] = []
-  const values: unknown[] = []
+  const params: unknown[] = []
+  let idx = 1
 
   if (patch.plan !== undefined) {
-    fields.push('plan = ?')
-    values.push(patch.plan)
+    fields.push(`plan = $${idx++}`)
+    params.push(patch.plan)
   }
   if (patch.cycle !== undefined) {
-    fields.push('cycle = ?')
-    values.push(patch.cycle)
+    fields.push(`cycle = $${idx++}`)
+    params.push(patch.cycle)
   }
   if (patch.status !== undefined) {
-    fields.push('status = ?')
-    values.push(patch.status)
+    fields.push(`status = $${idx++}`)
+    params.push(patch.status)
   }
   if (patch.renewsAt !== undefined) {
-    fields.push('renews_at = ?')
-    values.push(patch.renewsAt)
+    fields.push(`renews_at = $${idx++}`)
+    params.push(patch.renewsAt)
   }
   if (patch.cancelAt !== undefined) {
-    fields.push('cancel_at = ?')
-    values.push(patch.cancelAt)
+    fields.push(`cancel_at = $${idx++}`)
+    params.push(patch.cancelAt)
   }
   if (patch.mpSubscriptionId !== undefined) {
-    fields.push('mp_subscription_id = ?')
-    values.push(patch.mpSubscriptionId)
+    fields.push(`mp_subscription_id = $${idx++}`)
+    params.push(patch.mpSubscriptionId)
   }
   if (patch.mpCustomerId !== undefined) {
-    fields.push('mp_customer_id = ?')
-    values.push(patch.mpCustomerId)
+    fields.push(`mp_customer_id = $${idx++}`)
+    params.push(patch.mpCustomerId)
   }
 
   if (fields.length === 0) return findSubscriptionByUserId(userId)
 
-  fields.push('updated_at = ?')
-  values.push(new Date().toISOString())
-  values.push(userId)
+  fields.push(`updated_at = $${idx++}`)
+  params.push(new Date().toISOString())
+  params.push(userId)
 
-  db.prepare(`UPDATE subscriptions SET ${fields.join(', ')} WHERE user_id = ?`).run(...values)
+  await sql.query(`UPDATE subscriptions SET ${fields.join(', ')} WHERE user_id = $${idx}`, params)
   return findSubscriptionByUserId(userId)
 }
 
-export function cancelSubscription(userId: string): SubscriptionRow | null {
-  const sub = findSubscriptionByUserId(userId)
+export async function cancelSubscription(userId: string): Promise<SubscriptionRow | null> {
+  const sub = await findSubscriptionByUserId(userId)
   if (!sub) return null
   return updateSubscription(userId, {
     status: 'cancelled',
@@ -107,6 +107,6 @@ export function cancelSubscription(userId: string): SubscriptionRow | null {
   })
 }
 
-export function reactivateSubscription(userId: string): SubscriptionRow | null {
+export async function reactivateSubscription(userId: string): Promise<SubscriptionRow | null> {
   return updateSubscription(userId, { status: 'active', cancelAt: null })
 }

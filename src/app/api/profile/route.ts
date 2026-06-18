@@ -19,10 +19,10 @@ export async function PATCH(req: NextRequest) {
   try {
     const me = await requireUser()
     const data = schema.parse(await req.json().catch(() => ({})))
-    const updated = updateUser(me.user.id, data)
+    const updated = await updateUser(me.user.id, data)
     if (!updated) return jsonOk({ error: 'Usuario no encontrado' }, { status: 404 })
 
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'profile.update',
       entity: 'user',

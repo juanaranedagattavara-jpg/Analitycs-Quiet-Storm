@@ -19,18 +19,18 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   try {
     const me = await requireAdmin()
     const { id } = await ctx.params
-    const target = findUserById(id)
+    const target = await findUserById(id)
     if (!target) throw new HttpError(404, 'Usuario no encontrado')
 
     const data = patchSchema.parse(await req.json().catch(() => ({})))
 
-    if (data.role) setUserRole(id, data.role)
-    if (data.name || data.company) updateUser(id, { name: data.name, company: data.company })
+    if (data.role) await setUserRole(id, data.role)
+    if (data.name || data.company) await updateUser(id, { name: data.name, company: data.company })
     if (data.plan || data.status) {
-      updateSubscription(id, { plan: data.plan, status: data.status })
+      await updateSubscription(id, { plan: data.plan, status: data.status })
     }
 
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'admin.user.update',
       entity: 'user',
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       ip: getClientIP(req),
     })
 
-    const updated = findUserById(id)!
+    const updated = (await findUserById(id))!
     return jsonOk({ user: toPublicUser(updated) })
   } catch (err) {
     return handleError(err)

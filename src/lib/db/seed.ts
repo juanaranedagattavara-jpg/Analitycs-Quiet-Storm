@@ -17,16 +17,17 @@ function fileNameFromUrl(url: string): string {
 
 let didSeed = false
 
-export function seedRealReportsIfEmpty(): void {
+export async function seedRealReportsIfEmpty(): Promise<void> {
   if (didSeed) return
   didSeed = true
 
-  const db = getDb()
-  const { n } = db.prepare('SELECT COUNT(*) as n FROM reports').get() as { n: number }
+  const sql = getDb()
+  const rows = await sql`SELECT COUNT(*) as n FROM reports`
+  const n = Number((rows[0] as { n: string | number }).n)
   if (n > 0) return
 
   for (const r of realReports) {
-    createReport({
+    await createReport({
       title: r.title,
       description: r.description,
       type: r.type,

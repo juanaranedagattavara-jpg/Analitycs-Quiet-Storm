@@ -26,11 +26,11 @@ export async function PATCH(req: NextRequest) {
     if (!data.plan && !data.cycle) {
       return jsonOk({ subscription: me.subscription })
     }
-    const next = updateSubscription(me.user.id, {
+    const next = await updateSubscription(me.user.id, {
       plan: data.plan,
       cycle: data.cycle,
     })
-    logAudit({
+    await logAudit({
       userId: me.user.id,
       action: 'subscription.update',
       entity: 'subscription',

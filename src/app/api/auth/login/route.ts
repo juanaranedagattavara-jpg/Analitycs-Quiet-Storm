@@ -40,23 +40,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const data = schema.parse(body)
 
-    const user = findUserByEmail(data.email)
+    const user = await findUserByEmail(data.email)
     if (!user) {
       return jsonOk({ error: 'Credenciales inválidas' }, { status: 401 })
     }
 
     const ok = await verifyPassword(data.password, user.password_hash)
     if (!ok) {
-      logAudit({ userId: user.id, action: 'auth.login_failed', ip })
+      await logAudit({ userId: user.id, action: 'auth.login_failed', ip })
       return jsonOk({ error: 'Credenciales inválidas' }, { status: 401 })
     }
 
-    if (!findSubscriptionByUserId(user.id)) {
-      createSubscription({ userId: user.id, plan: planFromSize(user.size), trialDays: 30 })
+    if (!await findSubscriptionByUserId(user.id)) {
+      await createSubscription({ userId: user.id, plan: planFromSize(user.size), trialDays: 30 })
     }
 
     const expiresAt = getSessionExpiresAt()
-    const session = createSession({
+    const session = await createSession({
       userId: user.id,
       expiresAt: expiresAt.toISOString(),
       userAgent: req.headers.get('user-agent') ?? null,
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     )
     await setSessionCookie(token, expiresAt)
 
-    logAudit({ userId: user.id, action: 'auth.login', ip })
+    await logAudit({ userId: user.id, action: 'auth.login', ip })
 
     return jsonOk({ user: toPublicUser(user) })
   } catch (err) {

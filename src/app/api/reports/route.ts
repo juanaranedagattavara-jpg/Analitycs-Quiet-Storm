@@ -7,7 +7,7 @@ import { jsonOk, handleError } from '@/lib/api/respond'
 export async function GET() {
   try {
     const me = await requireUser()
-    const rows = listReports({ onlyPublished: me.user.role !== 'admin' })
+    const rows = await listReports({ onlyPublished: me.user.role !== 'admin' })
     const reports = rows.map((row) => {
       const serialized = serializeReport(row)
       return {

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     const { id } = await ctx.params
     const url = new URL(req.url)
     const disposition = url.searchParams.get('disposition') === 'inline' ? 'inline' : 'attachment'
-    const report = findReportById(id)
+    const report = await findReportById(id)
     if (!report) throw new HttpError(404, 'Informe no encontrado')
     if (report.status !== 'published' && me.user.role !== 'admin') {
       throw new HttpError(404, 'Informe no encontrado')
@@ -25,8 +25,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     }
 
     const ip = getClientIP(req)
-    recordDownload(report.id, me.user.id, ip)
-    logAudit({
+    await recordDownload(report.id, me.user.id, ip)
+    await logAudit({
       userId: me.user.id,
       action: 'report.download',
       entity: 'report',
