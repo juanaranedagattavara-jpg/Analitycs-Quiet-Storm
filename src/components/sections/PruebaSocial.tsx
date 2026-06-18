@@ -25,10 +25,20 @@ export function PruebaSocial() {
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-storm-steel leading-relaxed">
-            Relaciones de largo plazo con exportadores chilenos de productos del mar.
-            No publicamos nombres por confidencialidad, pero la permanencia habla por sí sola:
-            en B2B chileno, nadie paga dos décadas por algo que no funciona.
+            En B2B chileno, nadie renueva por veinte años algo que no sirve.
+            Trabajamos con exportadores de productos del mar que vinieron con una crisis
+            y se quedaron porque encontraron claridad.
           </p>
+
+          <blockquote className="mt-10 max-w-xl mx-auto border-l-2 border-lightning pl-6 text-left">
+            <p className="font-display text-xl text-storm-midnight italic leading-snug">
+              "PriceCheck nos mostró lo que no habíamos visto.
+              Desde entonces lo usamos antes de cada temporada."
+            </p>
+            <cite className="mt-3 block font-mono text-xs text-storm-mist not-italic uppercase tracking-wider">
+              Exportador, Bacalao de profundidad — Chile
+            </cite>
+          </blockquote>
 
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {[

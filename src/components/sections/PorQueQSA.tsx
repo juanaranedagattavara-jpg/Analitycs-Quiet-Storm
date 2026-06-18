@@ -2,28 +2,28 @@ import { Container } from "@/components/ui/Container";
 
 const cards = [
   {
-    icon: <IconCompass />,
-    title: "Insiders de tu industria",
+    icon: <IconPrice />,
+    title: "Claridad inmediata: Price Check",
     body:
-      "Más de 51 productos del mar y 138 empresas exportadoras bajo análisis. Desde mejillones y bacalao de profundidad hasta erizos, centolla y salmón. Entendemos FOB por destino, spreads por mercado y dinámicas estacionales. +20 años en estas industrias.",
+      "Sabe a cuánto vendió tu competidor antes de cerrar tu próxima operación. Price Check entrega datos de precio FOB por destino, empresa y producto — el informe que los exportadores chilenos compran primero.",
   },
   {
     icon: <IconStorm />,
-    title: "Mercados VUCA necesitan datos duros",
+    title: "Mercados VUCA: intuición no basta",
     body:
-      "Los mercados de exportación son Volátiles, Inciertos, Complejos y Ambiguos. La percepción y el instinto no bastan. Te entregamos las herramientas analíticas y los datos duros para tomar decisiones con confianza.",
+      "Los mercados de exportación son Volátiles, Inciertos, Complejos y Ambiguos. Cuando el precio se mueve y tú no lo viste, ya perdiste. Te entregamos los datos duros para reaccionar rápido y anticipar mejor.",
   },
   {
     icon: <IconLayers />,
-    title: "Dashboards hechos a tu medida",
+    title: "Inteligencia, no solo reportes",
     body:
-      "No es un dashboard genérico. Cada informe se construye con la granularidad que necesitas: producto, destino, empresa, calibre. Reportes PDF, archivos Excel y dashboards HTML interactivos disponibles cuando los necesites.",
+      "De la crisis de hoy a la estrategia de mañana: dashboards interactivos, ranking de empresas, análisis de calibres y tendencias. Construido sobre 20 años de data granular por producto, destino y empresa.",
   },
   {
-    icon: <IconUF />,
-    title: "Pricing en UF, pensado para Chile",
+    icon: <IconCompass />,
+    title: "Insiders de la industria",
     body:
-      "Tres planes en UF adaptados a cada tamaño de empresa. Desde Pymes que necesitan Price Check hasta empresas grandes que requieren inteligencia competitiva completa. Sin costos ocultos.",
+      "+138 empresas y +51 productos del mar bajo análisis permanente. Mejillones, bacalao, erizos, centolla, salmón. Entendemos los spreads, la estacionalidad y las dinámicas de cada mercado de destino.",
   },
 ];
 
@@ -36,8 +36,10 @@ export function PorQueQSA() {
             Por qué QSA
           </p>
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight">
-            No te entregamos un dashboard genérico. Te entregamos una{" "}
-            <span className="text-sunset-storm">ventaja competitiva</span>.
+            Resolvemos la crisis de hoy.
+            <br />
+            Construimos la{" "}
+            <span className="text-sunset-storm">inteligencia de mañana</span>.
           </h2>
         </div>
 
@@ -96,14 +98,12 @@ function IconLayers() {
   );
 }
 
-function IconUF() {
+function IconPrice() {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <rect x="3" y="6" width="22" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M3 11h22" stroke="currentColor" strokeWidth="1.5" />
-      <text x="14" y="20" textAnchor="middle" fontFamily="monospace" fontSize="8" fontWeight="700" fill="currentColor">
-        UF
-      </text>
+      <path d="M14 3v4M14 21v4M3 14h4M21 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="14" cy="14" r="7" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M11 16c0 1.1.9 2 2 2h2.5a1.5 1.5 0 000-3h-3a1.5 1.5 0 010-3H15a2 2 0 012 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
