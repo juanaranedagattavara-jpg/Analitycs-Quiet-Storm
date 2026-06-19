@@ -6,22 +6,22 @@ const pasos = [
   {
     n: "01",
     title: "Regístrate",
-    body: "Crea tu cuenta en quietstormanalytics.com. Sin tarjeta. Sin compromiso.",
+    body: "Crea tu cuenta en menos de un minuto. Sin tarjeta. Sin compromiso.",
   },
   {
     n: "02",
     title: "Prueba gratis 1 mes",
-    body: "Acceso completo a la plataforma. Reportes, dashboards y datos disponibles desde el primer día.",
+    body: "Acceso completo a la plataforma. Informes, tableros y datos disponibles desde el primer día.",
   },
   {
     n: "03",
     title: "Elige tu plan",
-    body: "Tres planes según el tamaño de tu empresa: Pyme, Profesional o Enterprise. Pago online con pasarela integrada.",
+    body: "Tres planes según el tamaño de tu empresa: Pyme, Profesional o Empresa. Pago online integrado.",
   },
   {
     n: "04",
     title: "Accede a tu inteligencia",
-    body: "Reportes, dashboards y datos disponibles 24/7 desde cualquier dispositivo.",
+    body: "Informes, tableros visuales y datos disponibles en cualquier momento desde cualquier dispositivo.",
   },
 ];
 
@@ -39,8 +39,8 @@ export function Plataforma() {
             </h2>
             <p className="mt-6 text-lg text-storm-steel leading-relaxed">
               Accede desde tu navegador. Sin instalaciones. Sin esperar correos.
-              Tus reportes, dashboards y archivos Excel disponibles cuando los
-              necesites. Pasarela de pago online integrada.
+              Tus informes, tableros visuales y datos disponibles cuando los
+              necesites.
             </p>
             <div className="mt-8">
               <Link

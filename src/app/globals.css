@@ -108,3 +108,60 @@ body {
 .btn-lightning:active {
   transform: translateY(1px);
 }
+
+/* ── Deep Ocean Animations ── */
+
+@keyframes ray-sway {
+  0%, 100% { transform: translateX(0) skewX(0deg); }
+  50% { transform: translateX(12px) skewX(1.5deg); }
+}
+
+@keyframes ray-sway-alt {
+  0%, 100% { transform: translateX(0) skewX(0deg); }
+  50% { transform: translateX(-10px) skewX(-1deg); }
+}
+
+@keyframes particle-rise {
+  0% { transform: translateY(0) translateX(0); opacity: var(--p-opacity, 0.5); }
+  50% { opacity: calc(var(--p-opacity, 0.5) * 1.4); }
+  100% { transform: translateY(-40px) translateX(8px); opacity: var(--p-opacity, 0.5); }
+}
+
+@keyframes current-drift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(30px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes bioluminescence {
+  0%, 100% { opacity: 0.04; r: var(--bio-r, 80); }
+  50% { opacity: 0.12; r: calc(var(--bio-r, 80) * 1.15); }
+}
+
+@keyframes caustic-shift {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.06; }
+  33% { transform: scale(1.05) rotate(1deg); opacity: 0.10; }
+  66% { transform: scale(0.97) rotate(-0.5deg); opacity: 0.07; }
+}
+
+.ocean-ray {
+  animation: ray-sway 8s ease-in-out infinite;
+}
+.ocean-ray-alt {
+  animation: ray-sway-alt 10s ease-in-out infinite;
+}
+.ocean-particle {
+  animation: particle-rise var(--p-dur, 12s) ease-in-out infinite;
+  animation-delay: var(--p-delay, 0s);
+}
+.ocean-current {
+  animation: current-drift var(--c-dur, 14s) ease-in-out infinite;
+  animation-delay: var(--c-delay, 0s);
+}
+.ocean-biolum {
+  animation: bioluminescence var(--bio-dur, 6s) ease-in-out infinite;
+  animation-delay: var(--bio-delay, 0s);
+}
+.ocean-caustic {
+  animation: caustic-shift 12s ease-in-out infinite;
+}
