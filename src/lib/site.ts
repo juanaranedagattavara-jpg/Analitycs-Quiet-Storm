@@ -12,7 +12,6 @@ export const site = {
 
 export const nav = [
   { href: "/", label: "Inicio" },
-  { href: "/#por-que", label: "Por qué QSA" },
   { href: "/#productos", label: "Productos" },
   { href: "/#industrias", label: "Industrias" },
   { href: "/#planes", label: "Planes" },
