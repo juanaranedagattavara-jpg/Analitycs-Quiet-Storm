@@ -18,16 +18,17 @@ export function PruebaSocial() {
           </div>
 
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight mb-6">
-            Más de dos décadas
+            Clientes que llegaron{" "}
+            <span className="text-sunset-storm">hace 20 años</span>
             <br />
-            entregando{" "}
-            <span className="text-sunset-storm">inteligencia real</span>.
+            siguen con nosotros hoy.
           </h2>
 
           <p className="max-w-2xl mx-auto text-lg text-storm-steel leading-relaxed">
-            En B2B chileno, nadie renueva por veinte años algo que no sirve.
-            Trabajamos con exportadores de productos del mar que vinieron con una crisis
-            y se quedaron porque encontraron claridad.
+            Nadie renueva por dos décadas algo que no aporta valor. Empezamos
+            con un exportador de salmón ahumado. Hoy cubrimos toda la industria
+            pesquera de exportación. Varios de esos primeros clientes siguen
+            vigentes — y eso es nuestro mejor argumento.
           </p>
 
           <blockquote className="mt-10 max-w-xl mx-auto border-l-2 border-lightning pl-6 text-left">

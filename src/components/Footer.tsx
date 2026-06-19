@@ -5,10 +5,10 @@ const cols = [
   {
     title: "Productos",
     links: [
-      { label: "Reportes PDF", href: "/#productos" },
-      { label: "Archivos Excel", href: "/#productos" },
-      { label: "Dashboards Interactivos", href: "/#productos" },
       { label: "Price Check", href: "/#productos" },
+      { label: "Informes ejecutivos", href: "/#productos" },
+      { label: "Tableros visuales", href: "/#productos" },
+      { label: "Datos y descargas", href: "/#productos" },
     ],
   },
   {
@@ -62,9 +62,8 @@ export function Footer() {
               </div>
             </div>
             <p className="text-sm text-storm-fog leading-relaxed">
-              Consultora chilena de inteligencia de mercado fundada hace más de 20 años.
-              Especializados en exportadores de productos del mar: mejillones, erizos,
-              jaibas y algas.
+              Dos generaciones entregando inteligencia de mercado a exportadores
+              chilenos de productos del mar. Más de 20 años de trayectoria.
             </p>
             <div className="mt-6 space-y-2 text-sm">
               <a

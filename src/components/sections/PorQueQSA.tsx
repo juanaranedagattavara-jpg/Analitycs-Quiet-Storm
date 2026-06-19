@@ -3,27 +3,27 @@ import { Container } from "@/components/ui/Container";
 const cards = [
   {
     icon: <IconPrice />,
-    title: "Claridad inmediata: Price Check",
+    title: "Precios reales, no estimaciones",
     body:
-      "Sabe a cuánto vendió tu competidor antes de cerrar tu próxima operación. Price Check entrega datos de precio FOB por destino, empresa y producto — el informe que los exportadores chilenos compran primero.",
+      "Price Check te dice a cuánto vendió tu competidor antes de que cierres tu próxima operación. Precio FOB por destino, empresa y producto — el informe que los exportadores piden primero.",
   },
   {
     icon: <IconStorm />,
-    title: "Mercados VUCA: intuición no basta",
+    title: "Cuando el mercado se mueve, tú ya lo sabías",
     body:
-      "Los mercados de exportación son Volátiles, Inciertos, Complejos y Ambiguos. Cuando el precio se mueve y tú no lo viste, ya perdiste. Te entregamos los datos duros para reaccionar rápido y anticipar mejor.",
+      "Los mercados de exportación cambian rápido. El precio que servía la temporada pasada hoy puede dejarte fuera. Te entregamos los datos para que reacciones a tiempo y negocies con fundamento.",
   },
   {
     icon: <IconLayers />,
-    title: "Inteligencia, no solo reportes",
+    title: "Inteligencia de fondo, no solo cifras",
     body:
-      "De la crisis de hoy a la estrategia de mañana: dashboards interactivos, ranking de empresas, análisis de calibres y tendencias. Construido sobre 20 años de data granular por producto, destino y empresa.",
+      "Tableros visuales, ranking de empresas, análisis de calibres y tendencias. Construido sobre más de 20 años de datos reales por producto, destino y empresa — contexto que no se compra en otra parte.",
   },
   {
     icon: <IconCompass />,
-    title: "Insiders de la industria",
+    title: "Conocemos tu industria por dentro",
     body:
-      "+138 empresas y +51 productos del mar bajo análisis permanente. Mejillones, bacalao, erizos, centolla, salmón. Entendemos los spreads, la estacionalidad y las dinámicas de cada mercado de destino.",
+      "Más de 138 empresas y 51 productos del mar bajo análisis permanente. Mejillones, erizos, centolla, salmón. Entendemos la estacionalidad, los ciclos y las dinámicas de cada mercado de destino.",
   },
 ];
 
@@ -36,10 +36,10 @@ export function PorQueQSA() {
             Por qué QSA
           </p>
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight">
-            Resolvemos la crisis de hoy.
+            Nacimos de los datos.
             <br />
-            Construimos la{" "}
-            <span className="text-sunset-storm">inteligencia de mañana</span>.
+            Crecimos con{" "}
+            <span className="text-sunset-storm">la industria</span>.
           </h2>
         </div>
 
