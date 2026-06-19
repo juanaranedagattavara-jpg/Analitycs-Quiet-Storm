@@ -754,7 +754,6 @@ function ProfileEditor({
       {([
         ['name', 'Nombre'],
         ['email', 'Email'],
-        ['company', 'Empresa'],
         ['phone', 'Teléfono'],
         ['rut', 'RUT'],
       ] as const).map(([k, label]) => (

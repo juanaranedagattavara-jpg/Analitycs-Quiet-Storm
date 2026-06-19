@@ -185,12 +185,47 @@ BEGIN
 END $$;
 
 -- 12. Add NOT NULL + UNIQUE constraint on subscriptions.organization_id
--- (only if not already set)
 DO $$
 BEGIN
   ALTER TABLE subscriptions ALTER COLUMN organization_id SET NOT NULL;
 EXCEPTION
   WHEN others THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'subscriptions'::regclass
+      AND contype = 'u'
+      AND conkey = (SELECT array_agg(attnum) FROM pg_attribute
+                    WHERE attrelid = 'subscriptions'::regclass
+                      AND attname = 'organization_id')
+  ) THEN
+    ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_organization_id_unique UNIQUE (organization_id);
+  END IF;
+END $$;
+
+-- 13. Add foreign key constraints to existing tables (where missing)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'subscriptions_organization_id_fkey'
+  ) THEN
+    ALTER TABLE subscriptions
+      ADD CONSTRAINT subscriptions_organization_id_fkey
+      FOREIGN KEY (organization_id) REFERENCES organizations(id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'invoices_organization_id_fkey'
+  ) THEN
+    ALTER TABLE invoices
+      ADD CONSTRAINT invoices_organization_id_fkey
+      FOREIGN KEY (organization_id) REFERENCES organizations(id);
+  END IF;
 END $$;
 
 COMMIT;
