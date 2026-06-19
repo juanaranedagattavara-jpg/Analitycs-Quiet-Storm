@@ -25,9 +25,10 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     }
 
     const ip = getClientIP(req)
-    await recordDownload(report.id, me.user.id, ip)
+    await recordDownload(report.id, me.user.id, me.organizationId, ip)
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'report.download',
       entity: 'report',
       entityId: report.id,

@@ -3,7 +3,7 @@ import { Container } from "@/components/ui/Container";
 
 export function Segmentos() {
   return (
-    <section className="py-24 lg:py-32 bg-storm-paper">
+    <section id="planes" className="py-24 lg:py-32 bg-storm-paper">
       <Container>
         <div className="max-w-2xl mb-16">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-storm-mist mb-4">

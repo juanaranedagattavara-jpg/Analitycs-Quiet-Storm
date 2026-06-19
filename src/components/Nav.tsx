@@ -56,14 +56,26 @@ export function Nav() {
 
           <nav className="hidden lg:flex items-center gap-8">
             {nav.map((item) => {
+              const isHash = item.href.startsWith("/#");
               const active =
                 pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+                (!isHash && item.href !== "/" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   data-active={active}
+                  onClick={
+                    isHash && pathname === "/"
+                      ? (e) => {
+                          e.preventDefault();
+                          const id = item.href.replace("/#", "");
+                          document
+                            .getElementById(id)
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                      : undefined
+                  }
                   className={cn(
                     "nav-link text-[15px] font-medium",
                     active ? "text-storm-midnight" : "text-storm-steel"
@@ -110,16 +122,28 @@ export function Nav() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-storm-foam bg-white">
           <div className="px-6 py-6 flex flex-col gap-1">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className="py-3 text-base font-medium text-storm-midnight border-b border-storm-foam/60 last:border-b-0"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {nav.map((item) => {
+              const isHash = item.href.startsWith("/#");
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => {
+                    setMobileOpen(false);
+                    if (isHash && pathname === "/") {
+                      e.preventDefault();
+                      const id = item.href.replace("/#", "");
+                      document
+                        .getElementById(id)
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="py-3 text-base font-medium text-storm-midnight border-b border-storm-foam/60 last:border-b-0"
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             <div className="mt-4 flex flex-col gap-2">
               <Link
                 href={ctas.platform.href}

@@ -4,7 +4,8 @@ import type { InvoiceRow, InvoiceStatus } from './types'
 import type { Plan, BillingCycle } from '@/lib/types'
 
 export interface CreateInvoiceInput {
-  userId: string
+  organizationId: string
+  userId?: string | null
   amountUF: number
   amountCLP: number
   ufRate: number
@@ -31,8 +32,8 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<InvoiceR
   const number = await nextInvoiceNumber()
   const status: InvoiceStatus = input.status ?? 'pending'
 
-  await sql`INSERT INTO invoices (id, user_id, number, amount_uf, amount_clp, uf_rate, plan, cycle, status, mp_payment_id, issued_at, paid_at, created_at)
-     VALUES (${id}, ${input.userId}, ${number}, ${input.amountUF}, ${input.amountCLP}, ${input.ufRate}, ${input.plan}, ${input.cycle}, ${status}, ${input.mpPaymentId ?? null}, ${now}, ${status === 'paid' ? now : null}, ${now})`
+  await sql`INSERT INTO invoices (id, organization_id, user_id, number, amount_uf, amount_clp, uf_rate, plan, cycle, status, mp_payment_id, issued_at, paid_at, created_at)
+     VALUES (${id}, ${input.organizationId}, ${input.userId ?? null}, ${number}, ${input.amountUF}, ${input.amountCLP}, ${input.ufRate}, ${input.plan}, ${input.cycle}, ${status}, ${input.mpPaymentId ?? null}, ${now}, ${status === 'paid' ? now : null}, ${now})`
 
   return (await findInvoiceById(id))!
 }
@@ -44,10 +45,10 @@ export async function findInvoiceById(id: string): Promise<InvoiceRow | null> {
   return (rows[0] as InvoiceRow) ?? null
 }
 
-export async function listInvoicesByUser(userId: string): Promise<InvoiceRow[]> {
+export async function listInvoicesByOrg(orgId: string): Promise<InvoiceRow[]> {
   await ensureDb()
   const sql = getDb()
-  return (await sql`SELECT * FROM invoices WHERE user_id = ${userId} ORDER BY issued_at DESC`) as InvoiceRow[]
+  return (await sql`SELECT * FROM invoices WHERE organization_id = ${orgId} ORDER BY issued_at DESC`) as InvoiceRow[]
 }
 
 export async function listAllInvoices(): Promise<InvoiceRow[]> {

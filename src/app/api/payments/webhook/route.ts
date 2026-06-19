@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getPaymentById } from '@/lib/payments/mercadopago'
 import { findInvoiceById, markInvoicePaid } from '@/lib/db/invoices'
-import { updateSubscription, findSubscriptionByUserId } from '@/lib/db/subscriptions'
+import { updateSubscription, findSubscriptionByOrgId } from '@/lib/db/subscriptions'
 import { findUserById } from '@/lib/db/users'
 import { logAudit } from '@/lib/db/audit'
 import { jsonOk, handleError } from '@/lib/api/respond'
@@ -48,10 +48,10 @@ export async function POST(req: NextRequest) {
 
     if (payment.status === 'approved' && invoice.status !== 'paid') {
       await markInvoicePaid(invoice.id, String(payment.id))
-      const subscription = await findSubscriptionByUserId(invoice.user_id)
+      const subscription = await findSubscriptionByOrgId(invoice.organization_id)
       if (subscription) {
         const renewsAt = addDaysISO(invoice.cycle === 'anual' ? 365 : 30)
-        await updateSubscription(invoice.user_id, {
+        await updateSubscription(invoice.organization_id, {
           plan: invoice.plan,
           cycle: invoice.cycle,
           status: 'active',
@@ -60,12 +60,13 @@ export async function POST(req: NextRequest) {
       }
       await logAudit({
         userId: invoice.user_id,
+        organizationId: invoice.organization_id,
         action: 'payment.approved',
         entity: 'invoice',
         entityId: invoice.id,
         metadata: { paymentId: payment.id, amount: payment.transaction_amount },
       })
-      const user = await findUserById(invoice.user_id)
+      const user = invoice.user_id ? await findUserById(invoice.user_id) : null
       if (user) {
         getEmailService()
           .send({

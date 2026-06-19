@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createUser, findUserByEmail, setUserRole } from '@/lib/db/users'
 import { createSubscription } from '@/lib/db/subscriptions'
 import { createSession } from '@/lib/db/sessions'
+import { createOrganization, addMember } from '@/lib/db/organizations'
 import { hashPassword } from '@/lib/auth/password'
 import {
   createSessionToken,
@@ -60,10 +61,7 @@ export async function POST(req: NextRequest) {
       email: data.email,
       passwordHash,
       name: data.name,
-      company: data.company,
       phone: data.phone || undefined,
-      industry: data.industry,
-      size: data.size,
     })
 
     const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase()
@@ -72,24 +70,34 @@ export async function POST(req: NextRequest) {
       user.role = 'admin'
     }
 
-    await createSubscription({ userId: user.id, plan, trialDays: 30 })
+    const org = await createOrganization({
+      name: data.company,
+      industry: data.industry,
+      size: data.size,
+      billingEmail: data.email,
+    })
+    await addMember(org.id, user.id, 'owner')
+
+    await createSubscription({ organizationId: org.id, plan, trialDays: 30 })
 
     const expiresAt = getSessionExpiresAt()
     const session = await createSession({
       userId: user.id,
+      organizationId: org.id,
       expiresAt: expiresAt.toISOString(),
       userAgent: req.headers.get('user-agent') ?? null,
       ip,
     })
 
     const token = await createSessionToken(
-      { sid: session.id, uid: user.id, role: user.role },
+      { sid: session.id, uid: user.id, oid: org.id, role: user.role },
       expiresAt,
     )
     await setSessionCookie(token, expiresAt)
 
     await logAudit({
       userId: user.id,
+      organizationId: org.id,
       action: 'user.register',
       entity: 'user',
       entityId: user.id,

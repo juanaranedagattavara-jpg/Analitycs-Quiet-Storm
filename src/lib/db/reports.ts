@@ -131,11 +131,11 @@ export async function deleteReport(id: string): Promise<void> {
   await sql`DELETE FROM reports WHERE id = ${id}`
 }
 
-export async function recordDownload(reportId: string, userId: string, ip?: string | null): Promise<void> {
+export async function recordDownload(reportId: string, userId: string, organizationId: string, ip?: string | null): Promise<void> {
   await ensureDb()
   const sql = getDb()
-  await sql`INSERT INTO report_downloads (id, report_id, user_id, downloaded_at, ip)
-     VALUES (${randomUUID()}, ${reportId}, ${userId}, ${new Date().toISOString()}, ${ip ?? null})`
+  await sql`INSERT INTO report_downloads (id, report_id, user_id, organization_id, downloaded_at, ip)
+     VALUES (${randomUUID()}, ${reportId}, ${userId}, ${organizationId}, ${new Date().toISOString()}, ${ip ?? null})`
 }
 
 export async function countDownloadsByReport(reportId: string): Promise<number> {

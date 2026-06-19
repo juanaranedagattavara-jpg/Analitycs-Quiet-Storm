@@ -6,10 +6,7 @@ export interface CreateUserInput {
   email: string
   passwordHash: string
   name: string
-  company: string
   phone?: string
-  industry: string
-  size: string
   role?: UserRole
 }
 
@@ -34,19 +31,16 @@ export async function createUser(input: CreateUserInput): Promise<UserRow> {
   const id = randomUUID()
   const role: UserRole = input.role ?? 'user'
 
-  await sql`INSERT INTO users (id, email, password_hash, name, company, phone, industry, size, role, created_at, updated_at)
-     VALUES (${id}, ${input.email.toLowerCase().trim()}, ${input.passwordHash}, ${input.name.trim()}, ${input.company.trim()}, ${input.phone?.trim() || null}, ${input.industry}, ${input.size}, ${role}, ${now}, ${now})`
+  await sql`INSERT INTO users (id, email, password_hash, name, phone, role, created_at, updated_at)
+     VALUES (${id}, ${input.email.toLowerCase().trim()}, ${input.passwordHash}, ${input.name.trim()}, ${input.phone?.trim() || null}, ${role}, ${now}, ${now})`
 
   return (await findUserById(id))!
 }
 
 export interface UpdateUserProfile {
   name?: string
-  company?: string
   phone?: string | null
   rut?: string | null
-  industry?: string
-  size?: string
 }
 
 export async function updateUser(id: string, patch: UpdateUserProfile): Promise<UserRow | null> {
@@ -60,10 +54,6 @@ export async function updateUser(id: string, patch: UpdateUserProfile): Promise<
     fields.push(`name = $${idx++}`)
     params.push(patch.name.trim())
   }
-  if (patch.company !== undefined) {
-    fields.push(`company = $${idx++}`)
-    params.push(patch.company.trim())
-  }
   if (patch.phone !== undefined) {
     fields.push(`phone = $${idx++}`)
     params.push(patch.phone?.trim() || null)
@@ -71,14 +61,6 @@ export async function updateUser(id: string, patch: UpdateUserProfile): Promise<
   if (patch.rut !== undefined) {
     fields.push(`rut = $${idx++}`)
     params.push(patch.rut?.trim() || null)
-  }
-  if (patch.industry !== undefined) {
-    fields.push(`industry = $${idx++}`)
-    params.push(patch.industry)
-  }
-  if (patch.size !== undefined) {
-    fields.push(`size = $${idx++}`)
-    params.push(patch.size)
   }
 
   if (fields.length === 0) return findUserById(id)

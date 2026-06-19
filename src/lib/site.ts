@@ -12,17 +12,10 @@ export const site = {
 
 export const nav = [
   { href: "/", label: "Inicio" },
-  { href: "/precios", label: "Precios" },
-  {
-    href: "/industrias",
-    label: "Industrias",
-    children: [
-      { href: "/industrias/mitilicultura", label: "Mitilicultura" },
-      { href: "/industrias/erizos-jaibas", label: "Erizos y Jaibas" },
-      { href: "/industrias/algas", label: "Algas y Musgos" },
-    ],
-  },
-  { href: "/sobre-nosotros", label: "Sobre nosotros" },
+  { href: "/#productos", label: "Productos" },
+  { href: "/#industrias", label: "Industrias" },
+  { href: "/#planes", label: "Planes" },
+  { href: "/sobre-nosotros", label: "Nosotros" },
   { href: "/contacto", label: "Contacto" },
 ] as const;
 
