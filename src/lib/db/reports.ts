@@ -16,6 +16,7 @@ export interface CreateReportInput {
   tags: string[]
   filePath?: string | null
   fileSize?: number | null
+  data?: string | null
   status?: ReportStatus
   createdBy?: string | null
 }
@@ -27,8 +28,8 @@ export async function createReport(input: CreateReportInput): Promise<ReportRow>
   const now = new Date().toISOString()
   const status: ReportStatus = input.status ?? 'draft'
 
-  await sql`INSERT INTO reports (id, title, description, type, industry, month, year, plan, tags, file_path, file_size, status, upload_date, created_by, created_at, updated_at)
-     VALUES (${id}, ${input.title.trim()}, ${input.description.trim()}, ${input.type}, ${input.industry}, ${input.month}, ${input.year}, ${input.plan}, ${JSON.stringify(input.tags)}, ${input.filePath ?? null}, ${input.fileSize ?? null}, ${status}, ${now.slice(0, 10)}, ${input.createdBy ?? null}, ${now}, ${now})`
+  await sql`INSERT INTO reports (id, title, description, type, industry, month, year, plan, tags, file_path, file_size, data, status, upload_date, created_by, created_at, updated_at)
+     VALUES (${id}, ${input.title.trim()}, ${input.description.trim()}, ${input.type}, ${input.industry}, ${input.month}, ${input.year}, ${input.plan}, ${JSON.stringify(input.tags)}, ${input.filePath ?? null}, ${input.fileSize ?? null}, ${input.data ?? null}, ${status}, ${now.slice(0, 10)}, ${input.createdBy ?? null}, ${now}, ${now})`
 
   return (await findReportById(id))!
 }
@@ -60,6 +61,7 @@ export interface UpdateReportInput {
   tags?: string[]
   filePath?: string | null
   fileSize?: number | null
+  data?: string | null
   status?: ReportStatus
 }
 
@@ -109,6 +111,10 @@ export async function updateReport(id: string, patch: UpdateReportInput): Promis
   if (patch.fileSize !== undefined) {
     fields.push(`file_size = $${idx++}`)
     params.push(patch.fileSize)
+  }
+  if (patch.data !== undefined) {
+    fields.push(`data = $${idx++}`)
+    params.push(patch.data)
   }
   if (patch.status !== undefined) {
     fields.push(`status = $${idx++}`)

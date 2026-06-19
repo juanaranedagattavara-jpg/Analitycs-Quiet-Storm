@@ -14,7 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       throw new HttpError(404, 'Informe no encontrado')
     }
     const accessible = canAccessReport(row.plan, me.subscription.plan) || me.user.role === 'admin'
-    return jsonOk({ report: { ...serializeReport(row), accessible } })
+    return jsonOk({ report: { ...serializeReport(row, { includeData: accessible }), accessible } })
   } catch (err) {
     return handleError(err)
   }

@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/auth/current-user'
 import { createReport, listReports } from '@/lib/db/reports'
 import { saveReportFile } from '@/lib/storage/service'
 import { serializeReport } from '@/lib/reports/serializer'
+import { parseReportExcel } from '@/lib/reports/excel-parser'
+import { hasAnyBlock } from '@/lib/reports/data-types'
 import { jsonOk, handleError, getClientIP } from '@/lib/api/respond'
 import { logAudit } from '@/lib/db/audit'
 import type { Industry, ReportType } from '@/lib/types'
@@ -12,7 +14,7 @@ export async function GET() {
   try {
     await requireAdmin()
     const rows = await listReports()
-    return jsonOk({ reports: rows.map(serializeReport) })
+    return jsonOk({ reports: rows.map((r) => serializeReport(r)) })
   } catch (err) {
     return handleError(err)
   }
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
 
     let filePath: string | null = null
     let fileSize: number | null = null
+    let parsedDataJson: string | null = null
     const file = form.get('file')
     if (file instanceof File && file.size > 0) {
       if (file.size > MAX_BYTES) {
@@ -66,9 +69,34 @@ export async function POST(req: NextRequest) {
       if (!ACCEPTED_EXT.includes(ext)) {
         return jsonOk({ error: 'Formato no permitido' }, { status: 415 })
       }
+
+      if (ext === 'xlsx' || ext === 'xls') {
+        try {
+          const buf = Buffer.from(await file.arrayBuffer())
+          const parsed = parseReportExcel(buf)
+          if (hasAnyBlock(parsed)) {
+            parsedDataJson = JSON.stringify(parsed)
+          }
+        } catch {
+          /* parsing failed — keep file but no structured data */
+        }
+      }
+
       const saved = await saveReportFile(file)
       filePath = saved.storageKey
       fileSize = saved.size
+    }
+
+    const dataFromForm = form.get('data')
+    if (typeof dataFromForm === 'string' && dataFromForm.trim()) {
+      try {
+        const obj = JSON.parse(dataFromForm)
+        if (obj && typeof obj === 'object') {
+          parsedDataJson = JSON.stringify(obj)
+        }
+      } catch {
+        /* ignore */
+      }
     }
 
     const report = await createReport({
@@ -82,6 +110,7 @@ export async function POST(req: NextRequest) {
       tags: tagsArr,
       filePath,
       fileSize,
+      data: parsedDataJson,
       status: meta.status,
       createdBy: me.user.id,
     })

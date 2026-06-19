@@ -87,6 +87,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     tags TEXT NOT NULL DEFAULT '[]',
     file_path TEXT,
     file_size INTEGER,
+    data TEXT,
     status TEXT NOT NULL DEFAULT 'draft',
     upload_date TEXT NOT NULL,
     created_by TEXT,

@@ -228,4 +228,15 @@ BEGIN
   END IF;
 END $$;
 
+-- 14. Add data column to reports (for structured dashboard data parsed from Excel)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'reports' AND column_name = 'data'
+  ) THEN
+    ALTER TABLE reports ADD COLUMN data TEXT;
+  END IF;
+END $$;
+
 COMMIT;

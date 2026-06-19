@@ -111,6 +111,7 @@ export interface ReportRow {
   tags: string
   file_path: string | null
   file_size: number | null
+  data: string | null
   status: ReportStatus
   upload_date: string
   created_by: string | null

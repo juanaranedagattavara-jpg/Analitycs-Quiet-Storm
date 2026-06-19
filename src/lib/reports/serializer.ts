@@ -1,4 +1,5 @@
 import type { ReportRow } from '@/lib/db/types'
+import type { ReportData } from './data-types'
 
 export interface ReportPayload {
   id: string
@@ -11,6 +12,9 @@ export interface ReportPayload {
   plan: ReportRow['plan']
   tags: string[]
   fileSize?: string
+  hasFile: boolean
+  hasData: boolean
+  data?: ReportData
   status: ReportRow['status']
   uploadDate: string
 }
@@ -22,7 +26,22 @@ function formatSize(bytes: number | null): string | undefined {
   return bytes + ' B'
 }
 
-export function serializeReport(row: ReportRow): ReportPayload {
+function parseData(raw: string | null): ReportData | undefined {
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object') return parsed as ReportData
+  } catch {
+    /* ignore */
+  }
+  return undefined
+}
+
+export interface SerializeOptions {
+  includeData?: boolean
+}
+
+export function serializeReport(row: ReportRow, opts: SerializeOptions = {}): ReportPayload {
   let tags: string[] = []
   try {
     const parsed = JSON.parse(row.tags || '[]')
@@ -30,6 +49,7 @@ export function serializeReport(row: ReportRow): ReportPayload {
   } catch {
     /* ignore */
   }
+  const data = parseData(row.data)
   return {
     id: row.id,
     title: row.title,
@@ -41,6 +61,9 @@ export function serializeReport(row: ReportRow): ReportPayload {
     plan: row.plan,
     tags,
     fileSize: formatSize(row.file_size),
+    hasFile: Boolean(row.file_path),
+    hasData: Boolean(data),
+    data: opts.includeData ? data : undefined,
     status: row.status,
     uploadDate: row.upload_date,
   }

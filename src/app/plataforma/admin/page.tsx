@@ -90,6 +90,8 @@ interface AdminReport {
   plan: 'pyme' | 'profesional' | 'enterprise' | 'ambos'
   tags: string[]
   fileSize?: string
+  hasFile?: boolean
+  hasData?: boolean
   status: 'draft' | 'published' | 'processing'
   uploadDate: string
 }
@@ -156,7 +158,8 @@ export default function AdminPage() {
     const profesionalOnly = reports.filter((r) => r.plan === 'profesional').length
     const pymeOnly = reports.filter((r) => r.plan === 'pyme').length
     const ambos = reports.filter((r) => r.plan === 'ambos').length
-    return { total, thisMonth, enterpriseOnly, profesionalOnly, pymeOnly, ambos }
+    const withDashboard = reports.filter((r) => r.hasData).length
+    return { total, thisMonth, enterpriseOnly, profesionalOnly, pymeOnly, ambos, withDashboard }
   }, [reports])
 
   useEffect(() => {
@@ -296,9 +299,64 @@ export default function AdminPage() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard label="Total informes" value={String(stats.total)} />
         <StatCard label="Este mes" value={String(stats.thisMonth)} />
+        <StatCard label="Con dashboard" value={String(stats.withDashboard)} accent />
         <StatCard label="Plan Enterprise" value={String(stats.enterpriseOnly)} />
         <StatCard label="Plan Profesional" value={String(stats.profesionalOnly)} />
-        <StatCard label="Pyme + Todos" value={String(stats.pymeOnly + stats.ambos)} />
+      </div>
+
+      {/* Plantilla Excel hint */}
+      <div className="bg-gradient-to-r from-lightning/10 to-amber-50 border border-lightning/30 rounded-2xl p-5 flex flex-col lg:flex-row gap-4 items-start">
+        <div className="w-10 h-10 rounded-xl bg-lightning/20 flex items-center justify-center flex-shrink-0">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="14" height="14" rx="2" />
+            <path d="M3 8h14M8 3v14" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display font-semibold text-storm-midnight text-base mb-1">
+            Plantilla Excel para dashboards interactivos
+          </h3>
+          <p className="text-xs text-storm-steel leading-relaxed mb-3">
+            Si subes un <code className="font-mono bg-white/80 px-1.5 py-0.5 rounded">.xlsx</code> con hojas con estos nombres, la plataforma generará automáticamente el dashboard interactivo para los clientes (manteniendo el archivo original descargable):
+          </p>
+          <div className="grid sm:grid-cols-2 gap-2 text-xs">
+            <div className="bg-white rounded-lg px-3 py-2 border border-storm-foam">
+              <p className="font-mono font-semibold text-storm-midnight">Hoja &quot;KPIs&quot;</p>
+              <p className="text-storm-fog mt-0.5">columnas: <code>label, value, unit, delta_pct</code></p>
+            </div>
+            <div className="bg-white rounded-lg px-3 py-2 border border-storm-foam">
+              <p className="font-mono font-semibold text-storm-midnight">Hoja &quot;Ranking&quot;</p>
+              <p className="text-storm-fog mt-0.5">columnas: <code>empresa, valor_fob_usd, share_pct, delta_pct</code></p>
+            </div>
+            <div className="bg-white rounded-lg px-3 py-2 border border-storm-foam">
+              <p className="font-mono font-semibold text-storm-midnight">Hoja &quot;MarketShare&quot;</p>
+              <p className="text-storm-fog mt-0.5">columnas: <code>destino, valor_fob_usd, share_pct, delta_pct</code></p>
+            </div>
+            <div className="bg-white rounded-lg px-3 py-2 border border-storm-foam">
+              <p className="font-mono font-semibold text-storm-midnight">Hoja &quot;Calibres&quot;</p>
+              <p className="text-storm-fog mt-0.5">columnas: <code>calibre, volumen_kg, precio_fob_usd, delta_pct</code></p>
+            </div>
+            <div className="bg-white rounded-lg px-3 py-2 border border-storm-foam sm:col-span-2">
+              <p className="font-mono font-semibold text-storm-midnight">Hoja &quot;Resumen&quot;</p>
+              <p className="text-storm-fog mt-0.5">texto libre del resumen ejecutivo (cualquier celda).</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 mt-4">
+            <a
+              href="/api/admin/reports/template"
+              className="inline-flex items-center gap-2 px-4 h-9 rounded-xl bg-storm-midnight text-white text-xs font-semibold hover:bg-storm-deep transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6.5 1v8M3 5.5l3.5 3.5L10 5.5" />
+                <path d="M1 11h11" />
+              </svg>
+              Descargar plantilla .xlsx
+            </a>
+            <p className="text-[11px] text-storm-fog">
+              Las hojas que no incluyas simplemente no aparecerán. El parser es tolerante a variaciones de columnas (acepta &ldquo;empresa&rdquo; o &ldquo;compañia&rdquo;, etc.).
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-storm-foam overflow-hidden">
@@ -479,6 +537,7 @@ export default function AdminPage() {
                   <th className="text-left font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-4">Industria</th>
                   <th className="text-left font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-4">Mes</th>
                   <th className="text-left font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-4">Plan</th>
+                  <th className="text-left font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-4">Contenido</th>
                   <th className="text-left font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-4">Estado</th>
                   <th className="text-right font-mono text-[11px] uppercase tracking-wider text-storm-mist py-3 px-6">Acciones</th>
                 </tr>
@@ -504,6 +563,23 @@ export default function AdminPage() {
                         <span className={cn('inline-flex px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider border', planBadge.className)}>
                           {planBadge.label}
                         </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          {report.hasData && (
+                            <span title="Dashboard interactivo disponible" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-lightning/15 text-storm-midnight border border-lightning/30">
+                              Dashboard
+                            </span>
+                          )}
+                          {report.hasFile && (
+                            <span title="Archivo descargable" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-storm-paper text-storm-steel border border-storm-foam">
+                              Archivo
+                            </span>
+                          )}
+                          {!report.hasData && !report.hasFile && (
+                            <span className="text-[10px] text-storm-fog">—</span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <span className={cn('inline-flex px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider border', status.className)}>
@@ -551,10 +627,15 @@ export default function AdminPage() {
   )
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="bg-white rounded-2xl border border-storm-foam p-5">
-      <p className="font-mono text-xl font-bold text-storm-midnight">{value}</p>
+    <div className={cn(
+      'rounded-2xl p-5 border',
+      accent
+        ? 'bg-gradient-to-br from-lightning/15 to-amber-50 border-lightning/30'
+        : 'bg-white border-storm-foam',
+    )}>
+      <p className="font-display text-2xl font-bold text-storm-midnight">{value}</p>
       <p className="text-xs text-storm-mist mt-1">{label}</p>
     </div>
   )
