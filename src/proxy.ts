@@ -4,7 +4,7 @@ import { verifySessionToken, getCookieName } from '@/lib/auth/session'
 
 const PROTECTED = ['/plataforma']
 const ADMIN_PATHS = ['/plataforma/admin']
-const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/demo', '/api/payments/webhook', '/api/admin/reset-admin']
+const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/demo', '/api/payments/webhook']
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
