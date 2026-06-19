@@ -30,7 +30,7 @@ const industrias = [
 
 export function Industrias() {
   return (
-    <section className="py-24 lg:py-32 bg-storm-midnight text-white relative overflow-hidden">
+    <section id="industrias" className="py-24 lg:py-32 bg-storm-midnight text-white relative overflow-hidden">
       <div
         aria-hidden="true"
         className="absolute inset-0 opacity-[0.03]"

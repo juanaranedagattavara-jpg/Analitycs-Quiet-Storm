@@ -29,7 +29,7 @@ const cards = [
 
 export function PorQueQSA() {
   return (
-    <section className="py-24 lg:py-32 bg-white">
+    <section id="por-que" className="py-24 lg:py-32 bg-white">
       <Container>
         <div className="max-w-3xl">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-storm-mist mb-4">
