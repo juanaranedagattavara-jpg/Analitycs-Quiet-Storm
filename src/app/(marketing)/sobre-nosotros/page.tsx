@@ -81,7 +81,7 @@ export default function SobreNosotrosPage() {
               {
                 num: "01",
                 title: "Rigor metodológico",
-                body: "Formación en biología (U. de Chile) y MBA (Adolfo Ibáñez). Análisis con Python y R. Cada conclusión tiene respaldo cuantitativo.",
+                body: "Formación en biología (U. de Chile) y MBA (Adolfo Ibáñez). Cada conclusión tiene respaldo cuantitativo.",
               },
               {
                 num: "02",
@@ -91,7 +91,7 @@ export default function SobreNosotrosPage() {
               {
                 num: "03",
                 title: "Relaciones de largo plazo",
-                body: "Pricing en UF. Confidencialidad estricta. 5 clientes corporativos vigentes hace hasta 20+ años: la permanencia es nuestro KPI.",
+                body: "Tarifas en UF, confidencialidad estricta y clientes corporativos que llevan más de 20 años con nosotros. La permanencia es nuestra medida del éxito.",
               },
             ].map((p) => (
               <div
@@ -130,12 +130,12 @@ export default function SobreNosotrosPage() {
                 body: "Cruzamos datos del Servicio Nacional de Pesca, Aduanas, ProChile y fuentes internacionales con nuestra base propietaria de +20 años.",
               },
               {
-                title: "Análisis con Python y R",
-                body: "Modelos estadísticos validados. Visualizaciones interactivas (Plotly, Highcharts). Reportes automáticos PDF y Excel.",
+                title: "Modelos estadísticos serios",
+                body: "Cada conclusión está respaldada por análisis cuantitativo. Visualizaciones claras, informes ejecutivos y datos para que tu equipo profundice.",
               },
               {
-                title: "Plataforma web 24/7",
-                body: "Accedes a tu cuenta desde cualquier dispositivo. Dashboards actualizados, reportes nuevos, datos descargables en Excel.",
+                title: "Plataforma siempre disponible",
+                body: "Accedes a tu cuenta desde cualquier dispositivo. Tableros actualizados, informes nuevos y descargas de datos cuando los necesites.",
               },
               {
                 title: "Confidencialidad",
@@ -160,8 +160,7 @@ export default function SobreNosotrosPage() {
             ¿Quieres ver cómo se aplica a tu negocio?
           </h2>
           <p className="text-storm-spray mb-10 max-w-xl mx-auto text-lg">
-            Demo personalizada de 15 minutos. Te mostramos dashboards reales de
-            tu industria.
+            Demo personalizada de 15 minutos. Te mostramos casos reales de tu industria.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link

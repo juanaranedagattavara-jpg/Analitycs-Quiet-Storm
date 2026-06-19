@@ -7,13 +7,13 @@ export function PricingTeaser() {
       <Container>
         <div className="max-w-2xl mb-16">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-storm-mist mb-4">
-            Pricing
+            Planes
           </p>
           <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl font-medium text-storm-midnight leading-[1.1] tracking-tight">
-            Pricing transparente en UF.
+            Tres planes en UF, sin sorpresas.
           </h2>
           <p className="mt-5 text-lg text-storm-steel">
-            Tres planes adaptados al tamaño de tu empresa.{" "}
+            Adaptados al tamaño de tu empresa.{" "}
             <span className="text-storm-midnight font-medium">
               Prueba gratuita de 1 mes
             </span>{" "}
@@ -26,27 +26,27 @@ export function PricingTeaser() {
             name="Pymes y MicroPymes"
             price="1"
             cadence="UF / mes"
-            body="Price Check, Resumen Ejecutivo y Base de Datos Compilada. Para empresas que necesitan datos de precios para fijar los suyos."
+            body="Para empresas que necesitan saber a qué precio vendió el mercado antes de fijar el suyo."
             features={[
-              "Acceso plataforma web",
-              "Price Check",
-              "Resumen Ejecutivo",
-              "Base de Datos Compilada",
-              "Country Index",
+              "Acceso a la plataforma",
+              "Price Check — precios de tu competencia",
+              "Resumen ejecutivo del mercado",
+              "Base de datos histórica de exportaciones",
+              "Visión por país de destino",
             ]}
           />
           <PlanCard
             name="Profesional"
             price="3"
             cadence="UF / mes"
-            body="Análisis competitivo, Outliers y Competitive Landscape. Para empresas en crecimiento que necesitan posicionamiento estratégico."
+            body="Para empresas en crecimiento que quieren entender su posición competitiva y anticipar movimientos."
             features={[
               "Todo lo del plan Pyme",
               "Análisis competitivo",
-              "Outliers Analysis",
-              "Competitive Landscape",
-              "Análisis de Calibres",
-              "Excel detallados",
+              "Precios fuera de rango",
+              "Panorama competitivo",
+              "Desglose por calibre",
+              "Descarga de datos detallados",
             ]}
             featured
           />
@@ -54,14 +54,14 @@ export function PricingTeaser() {
             name="Empresas Medianas y Grandes"
             price="7"
             cadence="UF / mes"
-            body="Inteligencia competitiva completa: rankings, market share, calibres, flujos de bienes y clusters jerárquicos."
+            body="Para presentar a directorio: rankings, participación de mercado, calibres y flujos de exportación."
             features={[
               "Todo lo del plan Profesional",
-              "Ranking de Empresas y Mercados",
-              "Market Share completo",
-              "Análisis de Tendencias",
-              "Flujos de Bienes",
-              "Clusters Jerárquicos",
+              "Ranking de empresas y de mercados",
+              "Participación de mercado completa",
+              "Tendencias del mercado",
+              "Flujos de exportación entre países",
+              "Agrupación de mercados similares",
             ]}
           />
         </div>

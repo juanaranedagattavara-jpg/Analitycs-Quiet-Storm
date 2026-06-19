@@ -3,31 +3,32 @@ import { Container } from "@/components/ui/Container";
 
 const productos = [
   {
-    tag: "PDF",
-    title: "Reportes personalizados",
+    tag: "Price Check",
+    title: "A cuánto vendió tu competidor",
     body:
-      "Informes a medida con análisis de mercado, participación, precios y tendencias. Listos para tu directorio o equipo comercial.",
+      "Precios FOB por destino, producto y empresa. El informe que los exportadores piden antes de fijar el precio de la próxima temporada.",
     accent: "lightning",
   },
   {
-    tag: "XLSX",
-    title: "Archivos Excel detallados",
+    tag: "Reportes",
+    title: "Informes a medida para tu directorio",
     body:
-      "Datos cruzados por producto, destino, empresa y calibre. Granularidad total para tus propios análisis.",
+      "Análisis de mercado, participación, precios y tendencias. Documento ejecutivo listo para imprimir y llevar a reunión.",
     accent: "sunset",
   },
   {
-    tag: "HTML",
-    title: "Dashboards interactivos",
-    body: "MUSSEL METRICS · SEAFARM METRICS · MOSS METRICS. Visualizaciones actualizadas en tu plataforma.",
+    tag: "Plataforma",
+    title: "Tableros para ver tu mercado de un vistazo",
+    body:
+      "Mussel Metrics, Seafarm Metrics y Moss Metrics. Visualizaciones actualizadas dentro de tu cuenta, sin tener que armar nada.",
     accent: "lightning",
-    products: ["MUSSEL METRICS", "SEAFARM METRICS", "MOSS METRICS"],
+    products: ["Mussel Metrics", "Seafarm Metrics", "Moss Metrics"],
   },
   {
-    tag: "API",
-    title: "Price Check",
+    tag: "Datos",
+    title: "Tus propios cruces, sin pedir permiso",
     body:
-      "Reportes de precios de mercado para fijar los tuyos con datos, no con intuición. Ideal al inicio de temporada.",
+      "Datos detallados por producto, destino, empresa y calibre. Descárgalos y trabájalos como tu equipo lo necesite.",
     accent: "sunset",
   },
 ];

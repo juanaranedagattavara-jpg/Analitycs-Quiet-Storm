@@ -21,8 +21,9 @@ export default function IndustriasIndexPage() {
           <span className="text-sunset-storm">especializada</span> por industria.
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-storm-steel leading-relaxed">
-          Tres dashboards. Tres industrias del mar chileno. Cada uno construido
-          con datos propietarios de +20 años y análisis sectorial profundo.
+          Tres industrias del mar chileno cubiertas en profundidad. Cada una
+          construida con más de 20 años de datos propios y análisis sectorial
+          profundo.
         </p>
 
         <div className="mt-16 grid lg:grid-cols-3 gap-6">

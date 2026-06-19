@@ -12,23 +12,23 @@ export const metadata: Metadata = {
 type FeatureValue = boolean | string
 
 const features: { label: string; pyme: FeatureValue; profesional: FeatureValue; enterprise: FeatureValue }[] = [
-  { label: "Acceso plataforma web", pyme: true, profesional: true, enterprise: true },
-  { label: "Price Check", pyme: true, profesional: true, enterprise: true },
-  { label: "Resumen Ejecutivo", pyme: true, profesional: true, enterprise: true },
-  { label: "Base de Datos Compilada", pyme: true, profesional: true, enterprise: true },
-  { label: "Country Index", pyme: true, profesional: true, enterprise: true },
+  { label: "Acceso a la plataforma", pyme: true, profesional: true, enterprise: true },
+  { label: "Price Check — precios de tus competidores", pyme: true, profesional: true, enterprise: true },
+  { label: "Resumen ejecutivo del mercado", pyme: true, profesional: true, enterprise: true },
+  { label: "Base de datos histórica de exportaciones", pyme: true, profesional: true, enterprise: true },
+  { label: "Visión por país de destino", pyme: true, profesional: true, enterprise: true },
   { label: "Análisis competitivo", pyme: false, profesional: true, enterprise: true },
-  { label: "Outliers Analysis", pyme: false, profesional: true, enterprise: true },
-  { label: "Competitive Landscape", pyme: false, profesional: true, enterprise: true },
+  { label: "Detección de precios fuera de rango", pyme: false, profesional: true, enterprise: true },
+  { label: "Panorama competitivo", pyme: false, profesional: true, enterprise: true },
   { label: "Desglose por calibre", pyme: false, profesional: true, enterprise: true },
-  { label: "Ranking de Empresas", pyme: false, profesional: false, enterprise: true },
-  { label: "Ranking de Mercados", pyme: false, profesional: false, enterprise: true },
-  { label: "Market Share", pyme: false, profesional: false, enterprise: true },
-  { label: "Análisis de Tendencias", pyme: false, profesional: false, enterprise: true },
-  { label: "Análisis de Flujos de Bienes", pyme: false, profesional: false, enterprise: true },
-  { label: "Clusters Jerárquicos", pyme: false, profesional: false, enterprise: true },
-  { label: "Dashboards interactivos (HTML)", pyme: false, profesional: true, enterprise: true },
-  { label: "Archivos Excel detallados", pyme: false, profesional: true, enterprise: true },
+  { label: "Ranking de empresas", pyme: false, profesional: false, enterprise: true },
+  { label: "Ranking de mercados", pyme: false, profesional: false, enterprise: true },
+  { label: "Participación de mercado completa", pyme: false, profesional: false, enterprise: true },
+  { label: "Tendencias del mercado", pyme: false, profesional: false, enterprise: true },
+  { label: "Flujos de exportación entre países", pyme: false, profesional: false, enterprise: true },
+  { label: "Agrupación de mercados similares", pyme: false, profesional: false, enterprise: true },
+  { label: "Tableros visuales en la plataforma", pyme: false, profesional: true, enterprise: true },
+  { label: "Descarga de datos detallados", pyme: false, profesional: true, enterprise: true },
   { label: "Prueba gratuita 1 mes", pyme: true, profesional: true, enterprise: true },
 ]
 
@@ -39,11 +39,11 @@ const faqs = [
   },
   {
     q: "¿Cuánto es en pesos chilenos?",
-    a: "1 UF ~ CLP $38.000 (referencia junio 2026). Pyme: ~$38.000/mes o ~$380.000/año. Profesional: ~$114.000/mes o ~$1.140.000/año. Enterprise: ~$266.000/mes o ~$2.660.000/año.",
+    a: "1 UF ~ CLP $38.000 (referencia junio 2026). Pyme: ~$38.000/mes o ~$380.000/año. Profesional: ~$114.000/mes o ~$1.140.000/año. Empresa: ~$266.000/mes o ~$2.660.000/año.",
   },
   {
     q: "¿Qué diferencia hay entre mensual y anual?",
-    a: "Pagando anual ahorras el equivalente a 2 meses: 2 UF/año en Pyme, 6 UF/año en Profesional y 14 UF/año en Enterprise. La cobertura y las funcionalidades son idénticas.",
+    a: "Pagando anual ahorras el equivalente a 2 meses: 2 UF/año en Pyme, 6 UF/año en Profesional y 14 UF/año en Empresa. La cobertura y las funcionalidades son idénticas.",
   },
   {
     q: "¿Puedo pagar en USD?",
@@ -55,7 +55,7 @@ const faqs = [
   },
   {
     q: "¿Puedo cambiar de plan o ciclo de facturación?",
-    a: "Sí, en cualquier momento desde Mi Cuenta. Cambio de plan a más grande es inmediato. Downgrade y cambio de ciclo aplican al próximo período.",
+    a: "Sí, en cualquier momento desde Mi Cuenta. El cambio a un plan superior se aplica de inmediato. Pasar a un plan menor o cambiar el ciclo aplica al próximo período.",
   },
   {
     q: "¿Y si quiero cancelar?",
@@ -79,7 +79,7 @@ export default function PreciosPage() {
               Comparativa
             </p>
             <h2 className="font-display text-4xl lg:text-5xl font-medium text-storm-midnight">
-              Feature por feature.
+              Compara los tres planes.
             </h2>
           </div>
 
@@ -97,7 +97,7 @@ export default function PreciosPage() {
                     Profesional
                   </th>
                   <th className="text-center font-mono text-[11px] uppercase tracking-wider text-storm-mist py-4 px-6">
-                    Enterprise
+                    Empresa
                   </th>
                 </tr>
               </thead>
@@ -136,8 +136,8 @@ export default function PreciosPage() {
           <div className="grid lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
               { n: "1", title: "Regístrate gratis", body: "Crea tu cuenta en menos de 1 minuto. Sin tarjeta. Sin compromiso." },
-              { n: "2", title: "Prueba por 30 días", body: "Accede a la plataforma completa. Revisa reportes, dashboards y datos." },
-              { n: "3", title: "Elige tu plan", body: "Si te aporta valor, elige Pyme, Profesional o Enterprise, mensual o anual. Cambias cuando quieras." },
+              { n: "2", title: "Prueba por 30 días", body: "Accede a la plataforma completa. Revisa informes, tableros visuales y datos." },
+              { n: "3", title: "Elige tu plan", body: "Si te aporta valor, elige Pyme, Profesional o Empresa, mensual o anual. Cambias cuando quieras." },
             ].map((s) => (
               <div key={s.n} className="bg-white rounded-2xl p-8 border border-storm-foam">
                 <div className="font-display text-6xl text-lightning mb-4">{s.n}</div>

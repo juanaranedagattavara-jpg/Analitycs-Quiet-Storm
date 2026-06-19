@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s | Quiet Storm Analytics",
   },
   description:
-    "Plataforma de inteligencia de mercado para exportadores chilenos de productos del mar. Dashboards interactivos, reportes personalizados y datos por calibre, destino y empresa. +20 años de experiencia.",
+    "Plataforma de inteligencia de mercado para exportadores chilenos de productos del mar. Precios de tus competidores, informes a medida y datos por calibre, destino y empresa. Más de 20 años de experiencia.",
   metadataBase: new URL("https://quietstormanalytics.com"),
   openGraph: {
     title: "Quiet Storm Analytics",

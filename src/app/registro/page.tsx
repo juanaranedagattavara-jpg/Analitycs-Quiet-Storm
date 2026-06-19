@@ -23,15 +23,15 @@ export default function RegistroPage() {
               <span className="text-lightning">sin tarjeta</span>.
             </h1>
             <p className="mt-6 text-lg text-storm-steel leading-relaxed">
-              Crea tu cuenta en 1 minuto. 30 días con todos los dashboards,
-              informes e Excel. Si no te sirve, no pagas nada.
+              Crea tu cuenta en 1 minuto. 30 días con acceso completo a precios,
+              informes y descargas. Si no te sirve, no pagas nada.
             </p>
 
             <ul className="mt-10 space-y-4">
               {[
                 "Acceso a la plataforma completa por 30 días",
-                "Dashboards interactivos MUSSEL · SEAFARM · MOSS METRICS",
-                "Descarga de informes PDF y Excel reales",
+                "Tableros visuales: Mussel · Seafarm · Moss Metrics",
+                "Informes y descargas con datos reales",
                 "Cancela cuando quieras",
                 "Sin tarjeta de crédito ni datos bancarios",
               ].map((b) => (

@@ -24,8 +24,8 @@ export default function DemoPage() {
               <span className="text-sunset-storm">Datos reales.</span>
             </h1>
             <p className="mt-6 text-lg text-storm-steel leading-relaxed">
-              Te mostramos la plataforma con dashboards de tu industria
-              (mejillones, erizos, jaibas o algas). Sin pitch comercial: vemos los
+              Te mostramos la plataforma con datos reales de tu industria
+              (mejillones, erizos, jaibas o algas). Sin discurso comercial: vemos los
               datos y respondemos tus preguntas.
             </p>
 
@@ -44,7 +44,7 @@ export default function DemoPage() {
                 {
                   n: "3",
                   title: "Demo 15 min",
-                  body: "Por Google Meet o Zoom. Vemos dashboards reales de tu sector.",
+                  body: "Por Google Meet o Zoom. Vemos datos y casos reales de tu sector.",
                 },
                 {
                   n: "4",
