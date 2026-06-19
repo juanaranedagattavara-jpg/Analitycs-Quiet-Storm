@@ -17,56 +17,43 @@ const PLAN_META: Record<Plan, {
   pyme: {
     name: PLAN_LABELS.pyme,
     description:
-      'Para empresas que necesitan datos de precios. Están por iniciar temporada y necesitan precios históricos para fijar los suyos.',
+      'Para empresas que están por iniciar temporada y necesitan saber a qué precio vendió el mercado antes de fijar el suyo.',
     features: [
-      'Price Check',
-      'Resumen Ejecutivo',
-      'Base de Datos Compilada',
-      'Beautiful Soup',
-      'Country Index',
+      'Price Check — precios de tu competencia',
+      'Resumen ejecutivo del mercado',
+      'Base de datos histórica de exportaciones',
+      'Visión por país de destino',
     ],
     featured: false,
   },
   profesional: {
     name: PLAN_LABELS.profesional,
     description:
-      'Análisis competitivo, outliers y landscape completo para empresas que necesitan posicionarse estratégicamente.',
+      'Para empresas en crecimiento que quieren entender su posición competitiva y anticipar movimientos del mercado.',
     features: [
-      'Price Check',
-      'Resumen Ejecutivo',
-      'Base de Datos Compilada',
-      'Beautiful Soup',
-      'Country Index',
-      'Outliers Analysis',
-      'Competitive Landscape',
-      'Análisis de Calibres',
+      'Todo lo del plan Pyme',
+      'Análisis competitivo',
+      'Precios fuera de rango',
+      'Panorama competitivo',
+      'Desglose por calibre',
+      'Descarga de datos detallados',
     ],
     featured: true,
   },
   enterprise: {
     name: PLAN_LABELS.enterprise,
     description:
-      'Inteligencia competitiva completa: rankings, market share, calibres, flujos de bienes, clusters y análisis de tendencias.',
+      'Para presentar a directorio: rankings, participación de mercado y flujos de exportación entre países.',
     features: [
-      'Price Check',
-      'Resumen Ejecutivo',
-      'Base de Datos Compilada',
-      'Beautiful Soup',
-      'Country Index',
-      'Outliers Analysis',
-      'Competitive Landscape',
-      'Análisis de Calibres',
-      'Análisis de Patrones de Mercado',
-      'Posicionamiento',
-      'Ranking de Empresas',
-      'Ranking de Mercados',
-      'Análisis de Mix de Productos',
-      'Market Share',
-      'Desempeño Comparado',
-      'Informe de Clientes Extranjeros',
-      'Análisis de Tendencias',
-      'Análisis de Flujos de Bienes',
-      'Análisis de Clusters Jerárquicos',
+      'Todo lo del plan Profesional',
+      'Ranking de empresas',
+      'Ranking de mercados',
+      'Participación de mercado completa',
+      'Tendencias del mercado',
+      'Desempeño comparado',
+      'Informe de clientes en el extranjero',
+      'Flujos de exportación entre países',
+      'Agrupación de mercados similares',
     ],
     featured: false,
   },
@@ -83,7 +70,7 @@ export function PreciosClient() {
             Precios
           </p>
           <h1 className="font-display text-5xl lg:text-6xl xl:text-7xl font-medium text-storm-midnight leading-[1.05] tracking-tight max-w-4xl">
-            Tres planes. Pricing en UF.{' '}
+            Tres planes en UF.{' '}
             <span className="text-sunset-storm">Sin sorpresas.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-storm-steel leading-relaxed">

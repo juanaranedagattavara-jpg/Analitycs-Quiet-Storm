@@ -53,8 +53,8 @@ export const industrias: Record<string, Industria> = {
       "Participación de mercado España, Italia, Francia, Rusia",
       "Tendencias estacionales y proyecciones",
       "Spread por mercado (oportunidad de arbitraje)",
-      "Excel descargable: producto × destino × empresa × calibre",
-      "Dashboard MUSSEL METRICS (HTML interactivo)",
+      "Descarga de datos: producto × destino × empresa × calibre",
+      "Tablero Mussel Metrics dentro de la plataforma",
     ],
     faqs: [
       {

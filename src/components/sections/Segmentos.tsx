@@ -36,7 +36,7 @@ export function Segmentos() {
             tag="Medianas y Grandes"
             quote='"Quiero compararme contra mi competencia."'
             body="Precios, volúmenes, participación de mercado, calibres. Todo cruzado por empresa y destino. Para presentar a directorio y anticipar movimientos del mercado."
-            plan="Plan Enterprise"
+            plan="Plan Empresa"
             price="7 UF / mes"
             href="/precios#plan-enterprise"
           />
