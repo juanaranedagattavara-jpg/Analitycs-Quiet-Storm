@@ -6,7 +6,7 @@ import { ctas } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Sobre nosotros — Quiet Storm Analytics",
   description:
-    "Consultora chilena de inteligencia de mercado para exportadores de productos del mar. Más de 20 años de trayectoria, desde las hojas impresas hasta la plataforma digital.",
+    "Heredamos el ADN de QSP — Quiet Storm Publishing SpA. Más de dos décadas leyendo las señales del mercado: investigación, análisis y visual thinking para exportadores chilenos del mar.",
 };
 
 export default function SobreNosotrosPage() {
@@ -23,10 +23,11 @@ export default function SobreNosotrosPage() {
             <span className="text-lightning">para ti.</span>
           </h1>
           <p className="mt-8 max-w-2xl text-lg lg:text-xl text-storm-spray leading-relaxed">
-            Quiet Storm Analytics nació de una convicción: los exportadores
-            chilenos de productos del mar merecen tomar decisiones con datos
-            rigurosos, no con intuición. Más de dos décadas de trabajo lo
-            respaldan.
+            Quiet Storm Analytics es la nueva generación de{" "}
+            <strong className="text-white font-medium">QSP — Quiet Storm Publishing SpA</strong>:
+            la consultora chilena que desde los años 90 lee las señales de
+            cambio del mercado para sus clientes. Heredamos su rigor, su método
+            y su filosofía. La traemos al mar.
           </p>
         </Container>
       </section>
@@ -56,14 +57,14 @@ export default function SobreNosotrosPage() {
                 Visión
               </p>
               <h2 className="font-display text-3xl lg:text-4xl font-medium leading-tight mb-5">
-                Ser el referente en inteligencia de mercado para toda la
-                industria pesquera y acuícola de Chile.
+                Los saltos cuánticos los dan quienes leen primero la señal.
               </h2>
               <p className="text-storm-spray text-[17px] leading-relaxed">
-                Que cada empresa exportadora — desde la pyme de Chiloé hasta la
-                compañía con presencia en 30 mercados — tenga acceso a datos
-                confiables, análisis serio y herramientas que antes solo
-                existían en industrias con presupuestos mayores.
+                Estamos convencidos de que el progreso de las empresas se da en
+                los momentos en que pueden leer acertadamente las señales de
+                cambio de los mercados, identificar brechas comerciales,
+                reconocer asimetrías entre oferta y demanda y descubrir
+                oportunidades puntuales. Eso es lo que hacemos posible.
               </p>
             </div>
           </div>
@@ -84,17 +85,19 @@ export default function SobreNosotrosPage() {
             </div>
             <div className="lg:col-span-8 space-y-6 text-storm-steel text-[17px] leading-relaxed">
               <p>
-                Todo empezó en los años 90. El fundador trabajaba como gerente
-                comercial y compraba datos de comercio exterior a un proveedor.
-                La información llegaba en hojas enormes, impresas — y había que
-                revisarlas línea por línea para tomar decisiones de precio y
-                mercado.
+                Todo empezó en los años 90. El fundador de QSP trabajaba como
+                gerente comercial y compraba datos de comercio exterior a un
+                proveedor. La información llegaba en hojas enormes, impresas —
+                y había que revisarlas línea por línea para tomar decisiones
+                de precio y mercado.
               </p>
               <p>
                 Le apasionaron los números. Con formación en biología de la
                 Universidad de Chile y un MBA en la Adolfo Ibáñez, decidió
                 construir un negocio basado en análisis riguroso — donde el
-                valor dependiera de los cálculos, no de la escala.
+                valor dependiera de los cálculos, no de la escala. Así nació
+                QSP: investigación y análisis de mercados con desarrollos a la
+                medida.
               </p>
               <p>
                 El primer cliente fue un exportador de salmón ahumado. El
@@ -103,26 +106,100 @@ export default function SobreNosotrosPage() {
                 permanencia es nuestro mayor orgullo.
               </p>
               <p>
-                Hoy, la segunda generación continúa ese legado: misma rigurosidad,
-                misma confidencialidad, pero ahora con una plataforma digital
-                que pone esa inteligencia al alcance de más exportadores.
+                Hoy, la segunda generación continúa ese legado bajo el nombre
+                de <strong className="text-storm-midnight">Quiet Storm Analytics</strong>:
+                misma rigurosidad, misma confidencialidad, mismo método. Pero
+                ahora con una plataforma digital que pone esa inteligencia al
+                alcance de más exportadores del mar.
               </p>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* El nombre */}
-      <section className="py-24 lg:py-32 bg-storm-midnight text-white">
-        <Container size="md">
-          <div className="max-w-3xl mx-auto text-center">
+      {/* Lo que heredamos de QSP — Visual Thinking */}
+      <section className="py-24 lg:py-32 bg-storm-midnight text-white relative overflow-hidden">
+        <Container>
+          <div className="max-w-3xl mb-16">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-lightning mb-4">
-              ¿Por qué Quiet Storm?
+              Lo que heredamos de QSP
             </p>
             <h2 className="font-display text-4xl lg:text-5xl font-medium leading-tight mb-8">
-              La tormenta silenciosa.
+              Visual Thinking: ver lo que otros no ven.
             </h2>
             <p className="text-storm-spray text-lg lg:text-xl leading-relaxed">
+              QSP nació con una convicción: una lectura desinformada de las
+              señales del mercado lleva a malas decisiones. Por eso desarrolló
+              un método propio — explorar, sondear, examinar tendencias y
+              traducirlas en imágenes que revelan lo que los datos crudos
+              esconden. Ese método se llama{" "}
+              <em className="text-lightning not-italic font-medium">Visual Thinking</em>,
+              y es el corazón de cómo trabajamos.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                num: "01",
+                title: "Métrica y Análisis",
+                body: "Anticiparse a los cambios disruptivos del mercado. Identificar brechas, gradientes y asimetrías antes que la competencia.",
+              },
+              {
+                num: "02",
+                title: "Visualización de Data",
+                body: "Revelar patrones y tendencias mediante gráficos, mapas e imágenes. Lo que un Excel oculta, una visualización lo expone.",
+              },
+              {
+                num: "03",
+                title: "Desarrollos a la Medida",
+                body: "Herramientas diseñadas en detalle para cada cliente. No vendemos paquetes estándar — construimos lo que tu negocio necesita.",
+              },
+              {
+                num: "04",
+                title: "Soporte",
+                body: "Relación estrecha y de largo plazo. Informes especiales cuando el mercado lo amerita — sin costo adicional.",
+              },
+            ].map((p) => (
+              <div
+                key={p.num}
+                className="rounded-2xl bg-white/[0.04] backdrop-blur p-7 border border-white/10"
+              >
+                <div className="font-display text-4xl font-medium text-lightning mb-4">
+                  {p.num}
+                </div>
+                <h3 className="font-display text-lg font-medium text-white mb-3">
+                  {p.title}
+                </h3>
+                <p className="text-sm text-storm-spray leading-relaxed">{p.body}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Quote emblemática */}
+          <div className="mt-20 max-w-3xl mx-auto text-center">
+            <p className="font-display text-3xl lg:text-4xl font-medium text-white leading-tight italic">
+              &ldquo;Lo que no se puede medir{" "}
+              <span className="text-lightning">no se puede mejorar</span>.&rdquo;
+            </p>
+            <p className="mt-4 font-mono text-xs uppercase tracking-[0.2em] text-storm-mist">
+              Filosofía QSP, desde 1995
+            </p>
+          </div>
+        </Container>
+      </section>
+
+      {/* El nombre */}
+      <section className="py-24 lg:py-32 bg-storm-paper">
+        <Container size="md">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-storm-mist mb-4">
+              ¿Por qué Quiet Storm?
+            </p>
+            <h2 className="font-display text-4xl lg:text-5xl font-medium text-storm-midnight leading-tight mb-8">
+              La tormenta silenciosa.
+            </h2>
+            <p className="text-storm-steel text-lg lg:text-xl leading-relaxed">
               En el mar, las corrientes más importantes son las que no se ven
               desde la superficie. Los movimientos de precio, los cambios de
               destino, las empresas que ganan o pierden participación — todo eso
@@ -135,7 +212,7 @@ export default function SobreNosotrosPage() {
       </section>
 
       {/* Filosofía */}
-      <section className="py-24 lg:py-32 bg-storm-paper">
+      <section className="py-24 lg:py-32 bg-white">
         <Container>
           <div className="max-w-3xl mb-16">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-storm-mist mb-4">
@@ -166,7 +243,7 @@ export default function SobreNosotrosPage() {
             ].map((p) => (
               <div
                 key={p.num}
-                className="rounded-2xl bg-white p-8 border border-storm-foam card-lift"
+                className="rounded-2xl bg-storm-paper p-8 border border-storm-foam card-lift"
               >
                 <div className="font-display text-5xl font-medium text-lightning mb-4">
                   {p.num}

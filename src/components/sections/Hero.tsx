@@ -9,8 +9,10 @@ export function Hero() {
 
       <Container className="relative pt-28 pb-28 lg:pt-44 lg:pb-40 min-h-[90vh] flex flex-col justify-center">
         <div className="max-w-4xl">
-          <p className="font-mono text-sm text-storm-fog tracking-[0.12em] uppercase mb-8">
-            Inteligencia de mercado para exportadores del mar chileno
+          <p className="font-mono text-sm text-storm-fog tracking-[0.12em] uppercase mb-8 flex items-center gap-3 flex-wrap">
+            <span>Inteligencia de mercado para exportadores del mar chileno</span>
+            <span className="hidden sm:inline text-storm-fog/40">·</span>
+            <span className="text-lightning">Visual Thinking</span>
           </p>
 
           <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl xl:text-[96px] font-medium leading-[0.95] tracking-tight">
@@ -23,6 +25,13 @@ export function Hero() {
             Más de 20 años convirtiendo datos de comercio exterior en
             decisiones comerciales claras — para que negocies con fundamento,
             no con intuición.
+          </p>
+
+          <p className="mt-6 max-w-xl text-[15px] text-storm-fog italic font-light leading-relaxed border-l-2 border-lightning/60 pl-4">
+            &ldquo;Lo que no se puede medir no se puede mejorar.&rdquo;
+            <span className="not-italic font-mono text-[11px] uppercase tracking-[0.2em] text-storm-mist ml-2">
+              — Filosofía QSP
+            </span>
           </p>
 
           <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm font-mono text-storm-fog">
