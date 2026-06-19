@@ -3,6 +3,7 @@ import { getDb, ensureDb } from './client'
 
 export interface AuditLogEntry {
   userId?: string | null
+  organizationId?: string | null
   action: string
   entity?: string | null
   entityId?: string | null
@@ -13,13 +14,14 @@ export interface AuditLogEntry {
 export async function logAudit(entry: AuditLogEntry): Promise<void> {
   await ensureDb()
   const sql = getDb()
-  await sql`INSERT INTO audit_log (id, user_id, action, entity, entity_id, metadata, ip, created_at)
-     VALUES (${randomUUID()}, ${entry.userId ?? null}, ${entry.action}, ${entry.entity ?? null}, ${entry.entityId ?? null}, ${entry.metadata ? JSON.stringify(entry.metadata) : null}, ${entry.ip ?? null}, ${new Date().toISOString()})`
+  await sql`INSERT INTO audit_log (id, user_id, organization_id, action, entity, entity_id, metadata, ip, created_at)
+     VALUES (${randomUUID()}, ${entry.userId ?? null}, ${entry.organizationId ?? null}, ${entry.action}, ${entry.entity ?? null}, ${entry.entityId ?? null}, ${entry.metadata ? JSON.stringify(entry.metadata) : null}, ${entry.ip ?? null}, ${new Date().toISOString()})`
 }
 
 export interface AuditRow {
   id: string
   user_id: string | null
+  organization_id: string | null
   action: string
   entity: string | null
   entity_id: string | null

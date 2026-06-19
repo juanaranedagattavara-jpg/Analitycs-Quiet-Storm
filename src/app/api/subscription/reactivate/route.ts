@@ -6,9 +6,10 @@ import { jsonOk, handleError } from '@/lib/api/respond'
 export async function POST() {
   try {
     const me = await requireUser()
-    const sub = await reactivateSubscription(me.user.id)
+    const sub = await reactivateSubscription(me.organizationId)
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'subscription.reactivate',
       entity: 'subscription',
     })

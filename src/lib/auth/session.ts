@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server'
 export interface SessionPayload {
   sid: string
   uid: string
+  oid: string
   role: 'user' | 'admin'
 }
 
@@ -46,9 +47,10 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
     if (
       typeof payload.sid === 'string' &&
       typeof payload.uid === 'string' &&
+      typeof payload.oid === 'string' &&
       (payload.role === 'user' || payload.role === 'admin')
     ) {
-      return { sid: payload.sid, uid: payload.uid, role: payload.role }
+      return { sid: payload.sid, uid: payload.uid, oid: payload.oid, role: payload.role }
     }
     return null
   } catch {

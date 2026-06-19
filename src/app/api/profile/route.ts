@@ -8,11 +8,8 @@ import { jsonOk, handleError, getClientIP } from '@/lib/api/respond'
 
 const schema = z.object({
   name: z.string().min(2).max(120).optional(),
-  company: z.string().min(2).max(160).optional(),
   phone: z.string().max(40).nullable().optional(),
   rut: z.string().max(20).nullable().optional(),
-  industry: z.string().max(40).optional(),
-  size: z.string().max(40).optional(),
 })
 
 export async function PATCH(req: NextRequest) {
@@ -24,6 +21,7 @@ export async function PATCH(req: NextRequest) {
 
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'profile.update',
       entity: 'user',
       entityId: me.user.id,

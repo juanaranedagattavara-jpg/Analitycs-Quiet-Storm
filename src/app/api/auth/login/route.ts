@@ -8,23 +8,17 @@ import {
   getSessionExpiresAt,
   setSessionCookie,
 } from '@/lib/auth/session'
-import { findSubscriptionByUserId, createSubscription } from '@/lib/db/subscriptions'
+import { findSubscriptionByOrgId, createSubscription } from '@/lib/db/subscriptions'
+import { findUserPrimaryOrg } from '@/lib/db/organizations'
 import { handleError, jsonOk, getClientIP } from '@/lib/api/respond'
 import { rateLimit } from '@/lib/api/rate-limit'
 import { logAudit } from '@/lib/db/audit'
 import { toPublicUser } from '@/lib/db/types'
-import type { Plan } from '@/lib/types'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(1, 'Contraseña requerida'),
 })
-
-function planFromSize(size: string): Plan {
-  if (size === 'pyme') return 'pyme'
-  if (size === 'profesional') return 'profesional'
-  return 'enterprise'
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,25 +45,32 @@ export async function POST(req: NextRequest) {
       return jsonOk({ error: 'Credenciales inválidas' }, { status: 401 })
     }
 
-    if (!await findSubscriptionByUserId(user.id)) {
-      await createSubscription({ userId: user.id, plan: planFromSize(user.size), trialDays: 30 })
+    const primaryOrg = await findUserPrimaryOrg(user.id)
+    if (!primaryOrg) {
+      return jsonOk({ error: 'No se encontró una organización asociada' }, { status: 403 })
+    }
+    const orgId = primaryOrg.org.id
+
+    if (!await findSubscriptionByOrgId(orgId)) {
+      await createSubscription({ organizationId: orgId, plan: 'enterprise', trialDays: 30 })
     }
 
     const expiresAt = getSessionExpiresAt()
     const session = await createSession({
       userId: user.id,
+      organizationId: orgId,
       expiresAt: expiresAt.toISOString(),
       userAgent: req.headers.get('user-agent') ?? null,
       ip,
     })
 
     const token = await createSessionToken(
-      { sid: session.id, uid: user.id, role: user.role },
+      { sid: session.id, uid: user.id, oid: orgId, role: user.role },
       expiresAt,
     )
     await setSessionCookie(token, expiresAt)
 
-    await logAudit({ userId: user.id, action: 'auth.login', ip })
+    await logAudit({ userId: user.id, organizationId: orgId, action: 'auth.login', ip })
 
     return jsonOk({ user: toPublicUser(user) })
   } catch (err) {

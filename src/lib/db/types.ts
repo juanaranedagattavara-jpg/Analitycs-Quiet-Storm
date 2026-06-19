@@ -1,17 +1,33 @@
 import type { Plan, BillingCycle, SubscriptionStatus, Industry, ReportType } from '@/lib/types'
 
 export type UserRole = 'user' | 'admin'
+export type OrgMemberRole = 'owner' | 'admin' | 'member'
+
+export interface OrganizationRow {
+  id: string
+  name: string
+  industry: string | null
+  size: string | null
+  billing_email: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface MembershipRow {
+  id: string
+  organization_id: string
+  user_id: string
+  role: OrgMemberRole
+  joined_at: string
+}
 
 export interface UserRow {
   id: string
   email: string
   password_hash: string
   name: string
-  company: string
   phone: string | null
   rut: string | null
-  industry: string
-  size: string
   role: UserRole
   email_verified_at: string | null
   created_at: string
@@ -22,19 +38,25 @@ export interface PublicUser {
   id: string
   email: string
   name: string
-  company: string
   phone: string | null
   rut: string | null
-  industry: string
-  size: string
   role: UserRole
   emailVerifiedAt: string | null
   createdAt: string
 }
 
+export interface PublicOrganization {
+  id: string
+  name: string
+  industry: string | null
+  size: string | null
+  billingEmail: string | null
+  createdAt: string
+}
+
 export interface SubscriptionRow {
   id: string
-  user_id: string
+  organization_id: string
   plan: Plan
   cycle: BillingCycle
   status: SubscriptionStatus
@@ -49,6 +71,7 @@ export interface SubscriptionRow {
 export interface SessionRow {
   id: string
   user_id: string
+  organization_id: string
   expires_at: string
   user_agent: string | null
   ip: string | null
@@ -59,7 +82,8 @@ export type InvoiceStatus = 'paid' | 'pending' | 'failed' | 'refunded'
 
 export interface InvoiceRow {
   id: string
-  user_id: string
+  organization_id: string
+  user_id: string | null
   number: string
   amount_uf: number
   amount_clp: number
@@ -112,13 +136,21 @@ export function toPublicUser(row: UserRow): PublicUser {
     id: row.id,
     email: row.email,
     name: row.name,
-    company: row.company,
     phone: row.phone,
     rut: row.rut,
-    industry: row.industry,
-    size: row.size,
     role: row.role,
     emailVerifiedAt: row.email_verified_at,
+    createdAt: row.created_at,
+  }
+}
+
+export function toPublicOrganization(row: OrganizationRow): PublicOrganization {
+  return {
+    id: row.id,
+    name: row.name,
+    industry: row.industry,
+    size: row.size,
+    billingEmail: row.billing_email,
     createdAt: row.created_at,
   }
 }

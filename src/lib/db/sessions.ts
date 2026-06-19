@@ -4,6 +4,7 @@ import type { SessionRow } from './types'
 
 export interface CreateSessionInput {
   userId: string
+  organizationId: string
   expiresAt: string
   userAgent?: string | null
   ip?: string | null
@@ -15,12 +16,13 @@ export async function createSession(input: CreateSessionInput): Promise<SessionR
   const id = randomUUID()
   const now = new Date().toISOString()
 
-  await sql`INSERT INTO sessions (id, user_id, expires_at, user_agent, ip, created_at)
-     VALUES (${id}, ${input.userId}, ${input.expiresAt}, ${input.userAgent ?? null}, ${input.ip ?? null}, ${now})`
+  await sql`INSERT INTO sessions (id, user_id, organization_id, expires_at, user_agent, ip, created_at)
+     VALUES (${id}, ${input.userId}, ${input.organizationId}, ${input.expiresAt}, ${input.userAgent ?? null}, ${input.ip ?? null}, ${now})`
 
   return {
     id,
     user_id: input.userId,
+    organization_id: input.organizationId,
     expires_at: input.expiresAt,
     user_agent: input.userAgent ?? null,
     ip: input.ip ?? null,

@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     const amountCLP = ufToCLP(amountUF, rate)
 
     const invoice = await createInvoice({
+      organizationId: me.organizationId,
       userId: me.user.id,
       amountUF,
       amountCLP,
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
     if (!isMercadoPagoConfigured()) {
       await logAudit({
         userId: me.user.id,
+        organizationId: me.organizationId,
         action: 'payment.checkout.unconfigured',
         entity: 'invoice',
         entityId: invoice.id,
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
       })
       await logAudit({
         userId: me.user.id,
+        organizationId: me.organizationId,
         action: 'payment.checkout.created',
         entity: 'invoice',
         entityId: invoice.id,

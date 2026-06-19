@@ -1,7 +1,7 @@
 'use client'
 
 import type { Plan, BillingCycle, SubscriptionStatus } from '@/lib/types'
-import type { PublicUser } from '@/lib/db/types'
+import type { PublicUser, PublicOrganization, OrgMemberRole } from '@/lib/db/types'
 
 export interface ClientSubscription {
   plan: Plan
@@ -14,6 +14,8 @@ export interface ClientSubscription {
 
 export interface MeResponse {
   user: PublicUser | null
+  organization: PublicOrganization | null
+  orgRole: OrgMemberRole | null
   subscription: {
     plan: Plan
     cycle: BillingCycle
@@ -101,11 +103,19 @@ export async function reactivateSubscription(): Promise<{ subscription: ClientSu
 
 export interface ProfileUpdate {
   name?: string
-  company?: string
   phone?: string | null
   rut?: string | null
 }
 
+export interface OrgUpdate {
+  name?: string
+  billingEmail?: string | null
+}
+
 export async function patchProfile(data: ProfileUpdate): Promise<{ user: PublicUser }> {
   return jsonFetch('/api/profile', { method: 'PATCH', body: JSON.stringify(data) })
+}
+
+export async function patchOrganization(data: OrgUpdate): Promise<{ organization: PublicOrganization }> {
+  return jsonFetch('/api/organization', { method: 'PATCH', body: JSON.stringify(data) })
 }

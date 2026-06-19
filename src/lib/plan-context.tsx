@@ -24,7 +24,7 @@ import {
   cancelSubscription as apiCancelSubscription,
   reactivateSubscription as apiReactivateSubscription,
 } from './auth/client'
-import type { PublicUser } from './db/types'
+import type { PublicUser, PublicOrganization, OrgMemberRole } from './db/types'
 
 interface PlanContextValue {
   plan: Plan
@@ -32,6 +32,8 @@ interface PlanContextValue {
   subscription: Subscription
   planConfig: PlanConfig
   user: PublicUser | null
+  organization: PublicOrganization | null
+  orgRole: OrgMemberRole | null
 
   setPlan: (plan: Plan) => void | Promise<void>
   setCycle: (cycle: BillingCycle) => void | Promise<void>
@@ -102,6 +104,8 @@ function normalizeFromClient(s: ClientSubscriptionFromAPI): Subscription {
 export function PlanProvider({ children }: { children: ReactNode }) {
   const [subscription, setSubscription] = useState<Subscription>(FALLBACK_SUBSCRIPTION)
   const [user, setUser] = useState<PublicUser | null>(null)
+  const [organization, setOrganization] = useState<PublicOrganization | null>(null)
+  const [orgRole, setOrgRole] = useState<OrgMemberRole | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -113,10 +117,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         if (data.user) {
           setIsAuthenticated(true)
           setUser(data.user)
+          setOrganization(data.organization ?? null)
+          setOrgRole(data.orgRole ?? null)
           profileStore.bootstrap({
             name: data.user.name || '',
             email: data.user.email || '',
-            company: data.user.company || '',
+            company: data.organization?.name || '',
             phone: data.user.phone || '',
             rut: data.user.rut || '',
             memberSince: new Date(data.user.createdAt).toLocaleDateString('es-CL', {
@@ -127,6 +133,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         } else {
           setIsAuthenticated(false)
           setUser(null)
+          setOrganization(null)
+          setOrgRole(null)
           profileStore.clear()
         }
         if (data.subscription) {
@@ -192,6 +200,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       subscription,
       planConfig,
       user,
+      organization,
+      orgRole,
       setPlan,
       setCycle,
       updateSubscription,
@@ -200,13 +210,15 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       canAccess,
       isTrial: subscription.status === 'trial',
       isAuthenticated,
-      isAdmin: user?.role === 'admin',
+      isAdmin: user?.role === 'admin' || orgRole === 'owner' || orgRole === 'admin',
       loading,
     }),
     [
       subscription,
       planConfig,
       user,
+      organization,
+      orgRole,
       setPlan,
       setCycle,
       updateSubscription,

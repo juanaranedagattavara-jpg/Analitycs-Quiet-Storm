@@ -1,18 +1,23 @@
 import { readSessionFromCookies, readSessionFromRequest } from './session'
 import { findUserById } from '@/lib/db/users'
 import { findSessionById } from '@/lib/db/sessions'
-import { findSubscriptionByUserId } from '@/lib/db/subscriptions'
-import { toPublicUser, type PublicUser, type SubscriptionRow } from '@/lib/db/types'
+import { findSubscriptionByOrgId } from '@/lib/db/subscriptions'
+import { findOrganizationById } from '@/lib/db/organizations'
+import { findMembership } from '@/lib/db/organizations'
+import { toPublicUser, toPublicOrganization, type PublicUser, type PublicOrganization, type SubscriptionRow, type OrgMemberRole } from '@/lib/db/types'
 import type { NextRequest } from 'next/server'
 
 export interface CurrentUser {
   user: PublicUser
+  organization: PublicOrganization
+  organizationId: string
+  orgRole: OrgMemberRole
   subscription: SubscriptionRow
   sessionId: string
 }
 
 async function resolveFromSession(
-  payload: { sid: string; uid: string } | null,
+  payload: { sid: string; uid: string; oid: string } | null,
 ): Promise<CurrentUser | null> {
   if (!payload) return null
 
@@ -24,11 +29,20 @@ async function resolveFromSession(
   const user = await findUserById(payload.uid)
   if (!user) return null
 
-  const subscription = await findSubscriptionByUserId(user.id)
+  const org = await findOrganizationById(payload.oid)
+  if (!org) return null
+
+  const membership = await findMembership(payload.oid, payload.uid)
+  if (!membership) return null
+
+  const subscription = await findSubscriptionByOrgId(payload.oid)
   if (!subscription) return null
 
   return {
     user: toPublicUser(user),
+    organization: toPublicOrganization(org),
+    organizationId: org.id,
+    orgRole: membership.role,
     subscription,
     sessionId: session.id,
   }
@@ -52,7 +66,9 @@ export async function requireUser(): Promise<CurrentUser> {
 
 export async function requireAdmin(): Promise<CurrentUser> {
   const me = await requireUser()
-  if (me.user.role !== 'admin') throw new HttpError(403, 'Acceso restringido')
+  if (me.user.role !== 'admin' && me.orgRole !== 'owner' && me.orgRole !== 'admin') {
+    throw new HttpError(403, 'Acceso restringido')
+  }
   return me
 }
 

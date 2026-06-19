@@ -88,7 +88,6 @@ export default function CuentaPage() {
     try {
       await patchProfile({
         name: next.name,
-        company: next.company,
         phone: next.phone || null,
         rut: next.rut || null,
       })

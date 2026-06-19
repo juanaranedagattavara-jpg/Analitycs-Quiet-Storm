@@ -35,6 +35,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'admin.report.update',
       entity: 'report',
       entityId: id,
@@ -60,6 +61,7 @@ export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: stri
 
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'admin.report.delete',
       entity: 'report',
       entityId: id,

@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
 
     await logAudit({
       userId: me.user.id,
+      organizationId: me.organizationId,
       action: 'admin.report.create',
       entity: 'report',
       entityId: report.id,

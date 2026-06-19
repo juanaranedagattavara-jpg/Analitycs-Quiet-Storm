@@ -10,7 +10,7 @@ function addDays(iso: string, days: number): string {
 }
 
 export interface CreateSubscriptionInput {
-  userId: string
+  organizationId: string
   plan: Plan
   cycle?: BillingCycle
   status?: SubscriptionStatus
@@ -26,16 +26,16 @@ export async function createSubscription(input: CreateSubscriptionInput): Promis
   const trialDays = input.trialDays ?? 30
   const id = randomUUID()
 
-  await sql`INSERT INTO subscriptions (id, user_id, plan, cycle, status, started_at, renews_at, updated_at)
-     VALUES (${id}, ${input.userId}, ${input.plan}, ${cycle}, ${status}, ${now}, ${addDays(now, trialDays)}, ${now})`
+  await sql`INSERT INTO subscriptions (id, organization_id, plan, cycle, status, started_at, renews_at, updated_at)
+     VALUES (${id}, ${input.organizationId}, ${input.plan}, ${cycle}, ${status}, ${now}, ${addDays(now, trialDays)}, ${now})`
 
-  return (await findSubscriptionByUserId(input.userId))!
+  return (await findSubscriptionByOrgId(input.organizationId))!
 }
 
-export async function findSubscriptionByUserId(userId: string): Promise<SubscriptionRow | null> {
+export async function findSubscriptionByOrgId(orgId: string): Promise<SubscriptionRow | null> {
   await ensureDb()
   const sql = getDb()
-  const rows = await sql`SELECT * FROM subscriptions WHERE user_id = ${userId} LIMIT 1`
+  const rows = await sql`SELECT * FROM subscriptions WHERE organization_id = ${orgId} LIMIT 1`
   return (rows[0] as SubscriptionRow) ?? null
 }
 
@@ -50,7 +50,7 @@ export interface UpdateSubscriptionInput {
 }
 
 export async function updateSubscription(
-  userId: string,
+  orgId: string,
   patch: UpdateSubscriptionInput,
 ): Promise<SubscriptionRow | null> {
   await ensureDb()
@@ -59,54 +59,33 @@ export async function updateSubscription(
   const params: unknown[] = []
   let idx = 1
 
-  if (patch.plan !== undefined) {
-    fields.push(`plan = $${idx++}`)
-    params.push(patch.plan)
-  }
-  if (patch.cycle !== undefined) {
-    fields.push(`cycle = $${idx++}`)
-    params.push(patch.cycle)
-  }
-  if (patch.status !== undefined) {
-    fields.push(`status = $${idx++}`)
-    params.push(patch.status)
-  }
-  if (patch.renewsAt !== undefined) {
-    fields.push(`renews_at = $${idx++}`)
-    params.push(patch.renewsAt)
-  }
-  if (patch.cancelAt !== undefined) {
-    fields.push(`cancel_at = $${idx++}`)
-    params.push(patch.cancelAt)
-  }
-  if (patch.mpSubscriptionId !== undefined) {
-    fields.push(`mp_subscription_id = $${idx++}`)
-    params.push(patch.mpSubscriptionId)
-  }
-  if (patch.mpCustomerId !== undefined) {
-    fields.push(`mp_customer_id = $${idx++}`)
-    params.push(patch.mpCustomerId)
-  }
+  if (patch.plan !== undefined) { fields.push(`plan = $${idx++}`); params.push(patch.plan) }
+  if (patch.cycle !== undefined) { fields.push(`cycle = $${idx++}`); params.push(patch.cycle) }
+  if (patch.status !== undefined) { fields.push(`status = $${idx++}`); params.push(patch.status) }
+  if (patch.renewsAt !== undefined) { fields.push(`renews_at = $${idx++}`); params.push(patch.renewsAt) }
+  if (patch.cancelAt !== undefined) { fields.push(`cancel_at = $${idx++}`); params.push(patch.cancelAt) }
+  if (patch.mpSubscriptionId !== undefined) { fields.push(`mp_subscription_id = $${idx++}`); params.push(patch.mpSubscriptionId) }
+  if (patch.mpCustomerId !== undefined) { fields.push(`mp_customer_id = $${idx++}`); params.push(patch.mpCustomerId) }
 
-  if (fields.length === 0) return findSubscriptionByUserId(userId)
+  if (fields.length === 0) return findSubscriptionByOrgId(orgId)
 
   fields.push(`updated_at = $${idx++}`)
   params.push(new Date().toISOString())
-  params.push(userId)
+  params.push(orgId)
 
-  await sql.query(`UPDATE subscriptions SET ${fields.join(', ')} WHERE user_id = $${idx}`, params)
-  return findSubscriptionByUserId(userId)
+  await sql.query(`UPDATE subscriptions SET ${fields.join(', ')} WHERE organization_id = $${idx}`, params)
+  return findSubscriptionByOrgId(orgId)
 }
 
-export async function cancelSubscription(userId: string): Promise<SubscriptionRow | null> {
-  const sub = await findSubscriptionByUserId(userId)
+export async function cancelSubscription(orgId: string): Promise<SubscriptionRow | null> {
+  const sub = await findSubscriptionByOrgId(orgId)
   if (!sub) return null
-  return updateSubscription(userId, {
+  return updateSubscription(orgId, {
     status: 'cancelled',
     cancelAt: sub.renews_at,
   })
 }
 
-export async function reactivateSubscription(userId: string): Promise<SubscriptionRow | null> {
-  return updateSubscription(userId, { status: 'active', cancelAt: null })
+export async function reactivateSubscription(orgId: string): Promise<SubscriptionRow | null> {
+  return updateSubscription(orgId, { status: 'active', cancelAt: null })
 }
