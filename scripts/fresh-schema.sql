@@ -1,0 +1,149 @@
+-- Fresh schema for QSA multitenant database
+-- Run this against an EMPTY Neon Postgres database
+-- This is the same schema as src/lib/db/schema.ts
+
+CREATE TABLE IF NOT EXISTS organizations (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  industry TEXT,
+  size TEXT,
+  billing_email TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_org_name ON organizations(name);
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  phone TEXT,
+  rut TEXT,
+  role TEXT NOT NULL DEFAULT 'user',
+  email_verified_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+CREATE TABLE IF NOT EXISTS memberships (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL REFERENCES organizations(id),
+  user_id TEXT NOT NULL REFERENCES users(id),
+  role TEXT NOT NULL DEFAULT 'member',
+  joined_at TEXT NOT NULL,
+  UNIQUE(organization_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_memberships_org ON memberships(organization_id);
+CREATE INDEX IF NOT EXISTS idx_memberships_user ON memberships(user_id);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL UNIQUE REFERENCES organizations(id),
+  plan TEXT NOT NULL,
+  cycle TEXT NOT NULL,
+  status TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  renews_at TEXT NOT NULL,
+  cancel_at TEXT,
+  mp_subscription_id TEXT,
+  mp_customer_id TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_org ON subscriptions(organization_id);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  user_agent TEXT,
+  ip TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL REFERENCES organizations(id),
+  user_id TEXT,
+  number TEXT NOT NULL UNIQUE,
+  amount_uf NUMERIC NOT NULL,
+  amount_clp INTEGER NOT NULL,
+  uf_rate NUMERIC NOT NULL,
+  plan TEXT NOT NULL,
+  cycle TEXT NOT NULL,
+  status TEXT NOT NULL,
+  mp_payment_id TEXT,
+  issued_at TEXT NOT NULL,
+  paid_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_invoices_org ON invoices(organization_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  type TEXT NOT NULL,
+  industry TEXT NOT NULL,
+  month INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  plan TEXT NOT NULL,
+  tags TEXT NOT NULL DEFAULT '[]',
+  file_path TEXT,
+  file_size INTEGER,
+  data TEXT,
+  status TEXT NOT NULL DEFAULT 'draft',
+  upload_date TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_reports_period ON reports(year, month);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
+CREATE INDEX IF NOT EXISTS idx_reports_plan ON reports(plan);
+
+CREATE TABLE IF NOT EXISTS report_downloads (
+  id TEXT PRIMARY KEY,
+  report_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  downloaded_at TEXT NOT NULL,
+  ip TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_downloads_report ON report_downloads(report_id);
+CREATE INDEX IF NOT EXISTS idx_downloads_user ON report_downloads(user_id);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  organization_id TEXT,
+  action TEXT NOT NULL,
+  entity TEXT,
+  entity_id TEXT,
+  metadata TEXT,
+  ip TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_org ON audit_log(organization_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
+
+CREATE TABLE IF NOT EXISTS leads (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  company TEXT NOT NULL,
+  phone TEXT,
+  industry TEXT,
+  message TEXT,
+  source TEXT NOT NULL DEFAULT 'demo',
+  status TEXT NOT NULL DEFAULT 'new',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
+CREATE INDEX IF NOT EXISTS idx_leads_created ON leads(created_at);
